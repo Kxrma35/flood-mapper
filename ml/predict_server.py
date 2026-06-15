@@ -11,6 +11,16 @@ model    = joblib.load("flood_model.pkl")
 scaler   = joblib.load("scaler.pkl")
 FEATURES = joblib.load("features.pkl")
 
+try:
+    model    = joblib.load("flood_model.pkl")
+    scaler   = joblib.load("scaler.pkl")
+    FEATURES = joblib.load("features.pkl")
+    MODEL_READY = True
+except FileNotFoundError:
+    MODEL_READY = False
+    print("WARNING: No model files found. Run train_model.py first. Using rule-based fallback.")
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     """

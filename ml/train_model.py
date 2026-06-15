@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 import joblib
 
-df = pd.read_csv("your-flood-data.csv")
+df = pd.read_csv("flood_data.csv")
 
 # ── Feature engineering ──────────────────────────────────────────
 df["month"] = pd.to_datetime(df["date"]).dt.month  # if date column exists
