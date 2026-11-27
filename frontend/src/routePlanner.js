@@ -2,13 +2,16 @@ import { lineCrossesZone, pointInZone, zoneRings } from './geometry';
 
 const API = import.meta.env.VITE_API_URL || '';
 const MAX_AVOID_AREAS = 20;
+// Longer than the backend's own provider timeouts (place search, then routing), so its
+// handled error reaches the user instead of a browser timeout.
+const ROUTE_TIMEOUT_MS = 45000;
 
 async function requestRoute(body) {
   const res = await fetch(`${API}/api/route`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(ROUTE_TIMEOUT_MS),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Route planning failed (HTTP ${res.status}).`);
@@ -31,13 +34,14 @@ export async function planRoute({ from, to, mode, zones, isAtRisk, avoidHighRisk
 
   // Only look for a safer route when the fastest one crosses a zone that needs avoiding; then
   // avoid every such zone, so the detour doesn't just move into another one (within ORS's limit).
-  const avoided = fastest.zones.filter(z => avoidable(z) && needsAvoiding(z));
+  const wanted = fastest.zones.filter(z => avoidable(z) && needsAvoiding(z));
   const everyZoneToAvoid = zones.filter(z => avoidable(z) && needsAvoiding(z));
-  const toAvoid = everyZoneToAvoid.flatMap(z => zoneRings(z.geometry)).length <= MAX_AVOID_AREAS ? everyZoneToAvoid : avoided;
+  const toAvoid = everyZoneToAvoid.flatMap(z => zoneRings(z.geometry)).length <= MAX_AVOID_AREAS ? everyZoneToAvoid : wanted;
 
   let safer = null;
   let saferError = null;
-  if (avoided.length) {
+  let avoided = [];
+  if (wanted.length) {
     try {
       const second = await requestRoute({
         from: first.from,
@@ -46,12 +50,22 @@ export async function planRoute({ from, to, mode, zones, isAtRisk, avoidHighRisk
         avoid: toAvoid.flatMap(z => zoneRings(z.geometry)).slice(0, MAX_AVOID_AREAS),
       });
       safer = { ...second.route, zones: zonesOnRoute(second.route.coordinates, zones) };
+      // Only claim what the alternative really avoids (the provider caps how many areas it takes).
+      avoided = wanted.filter(z => !safer.zones.includes(z));
+      if (!avoided.length) {
+        safer = null;
+        saferError = 'No route was found that avoids them.';
+      }
     } catch (err) {
       saferError = err.message;
     }
   }
 
-  return { from: first.from, to: first.to, mode, fastest, safer, saferError, avoided, startZones, endZones, avoidHighRisk };
+  // Which zones on the fastest route counted as at risk when this plan was made, so the panel
+  // can tell when newer weather makes the plan out of date.
+  const riskAtCheck = fastest.zones.filter(z => isAtRisk(z.properties)).map(z => z.properties.name).sort().join('|');
+
+  return { from: first.from, to: first.to, mode, fastest, safer, saferError, wanted, avoided, startZones, endZones, avoidHighRisk, riskAtCheck };
 }
 
 export function formatDistance(metres) {

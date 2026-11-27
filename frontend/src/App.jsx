@@ -7,7 +7,7 @@ import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import RoutePanel from './components/RoutePanel';
-import { isZoneAtRiskNow } from './risk';
+import { isZoneAtRiskNow, isZoneRiskKnown } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
 import { formatReading } from './format';
@@ -106,6 +106,7 @@ export default function App() {
 
   const precipMm = weather?.current_mm_per_hour ?? null;
   const isAtRisk = useCallback(zone => isZoneAtRiskNow(zone, predictions, precipMm), [predictions, precipMm]);
+  const isRiskKnown = useCallback(zone => isZoneRiskKnown(zone, predictions, precipMm), [predictions, precipMm]);
   const askAboutTrip = useCallback((origin, destination) => {
     setChatTrip({ origin, destination });
     setActiveTab('chat');
@@ -194,12 +195,12 @@ export default function App() {
               ))}
             </div>
 
-            {/* ── ROUTE CHECK TAB ── */}
-            {activeTab === 'route' && (
-              <>
+            {/* ── ROUTE CHECK TAB ── (kept mounted so the trip survives switching tabs) */}
+            <div style={{ display: activeTab === 'route' ? 'block' : 'none' }}>
                 <RoutePanel
                   zones={floodZones?.features ?? null}
                   isAtRisk={isAtRisk}
+                  isRiskKnown={isRiskKnown}
                   zonesAreSample={zonesAreSample}
                   plan={routePlan}
                   onPlan={setRoutePlan}
@@ -241,12 +242,10 @@ export default function App() {
                     </div>
                   </div>
                 </details>
-              </>
-            )}
+            </div>
 
-            {/* ── AI CHAT TAB ── */}
-            {activeTab === 'chat' && (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* ── AI CHAT TAB ── (kept mounted so the conversation survives switching tabs) */}
+            <div style={{ display: activeTab === 'chat' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
                 <div style={{ fontSize: 10, color: '#555', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <i className="ti ti-sparkles" style={{ fontSize: 12 }} aria-hidden="true" />
                   AI Flood Assistant
@@ -257,8 +256,7 @@ export default function App() {
                   )}
                 </div>
                 <AIChatPanel origin={chatTrip.origin} destination={chatTrip.destination} />
-              </div>
-            )}
+            </div>
 
           </div>
         </aside>

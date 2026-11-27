@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 const API = import.meta.env.VITE_API_URL || '';
 const MIN_CHARS = 3;
 const DEBOUNCE_MS = 350;
+const LOOKUP_TIMEOUT_MS = 20000;
 const KIND_LABEL = { area: 'Area', place: 'Place', street: 'Street', address: 'Address' };
 
 export default function PlaceInput({ value, onChange, onSubmit, label, placeholder, icon, iconColor, children }) {
@@ -23,7 +24,7 @@ export default function PlaceInput({ value, onChange, onSubmit, label, placehold
   async function load(query) {
     const request = ++latest.current;
     try {
-      const res = await fetch(`${API}/api/places?q=${encodeURIComponent(query)}`, { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(`${API}/api/places?q=${encodeURIComponent(query)}`, { signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS) });
       const body = await res.json().catch(() => ({}));
       if (request !== latest.current) return;
       if (!res.ok) throw new Error(body.error || 'Place search failed.');
@@ -43,16 +44,17 @@ export default function PlaceInput({ value, onChange, onSubmit, label, placehold
     onChange({ text, place: null });
     clearTimeout(timer.current);
     latest.current++;
+    setSuggestions([]);
+    setActive(-1);
+    setOpen(false);
     const query = text.trim();
-    if (query.length < MIN_CHARS) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
+    if (query.length < MIN_CHARS) return;
     timer.current = setTimeout(() => load(query), DEBOUNCE_MS);
   }
 
   function pick(place) {
+    clearTimeout(timer.current);
+    latest.current++;
     onChange({ text: place.label, place });
     setSuggestions([]);
     setOpen(false);

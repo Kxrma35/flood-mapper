@@ -28,9 +28,10 @@ async function resolvePlace(value, which) {
     if (!text) throw new RoutingError(400, `Enter a ${which}.`);
     return findPlace(text);
   }
-  const lat = Number(value?.lat);
-  const lon = Number(value?.lon);
-  if (!inBounds(lat, lon)) throw new RoutingError(400, `The ${which} must be in Kenya.`);
+  const { lat, lon } = value ?? {};
+  if (typeof lat !== 'number' || typeof lon !== 'number' || !inBounds(lat, lon)) {
+    throw new RoutingError(400, `The ${which} must be a point in Kenya.`);
+  }
   const label = typeof value.label === 'string' && value.label.trim() ? value.label.trim().slice(0, MAX_PLACE_CHARS) : 'Selected point';
   return { label, lat, lon };
 }

@@ -1,7 +1,7 @@
 // RoutePanel.jsx
 // Route check: real road routes from OpenRouteService, checked against the flood zones.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import PlaceInput from './PlaceInput';
 import { planRoute, formatDistance, formatDuration } from '../routePlanner';
 import { zoneCenter } from '../geometry';
@@ -18,10 +18,12 @@ function names(zones) {
 }
 const isAre = zones => (zones.length > 1 ? 'are' : 'is');
 
-export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPlan, selected, onSelect, onAskAI }) {
+export default function RoutePanel({ zones, isAtRisk, isRiskKnown, zonesAreSample, plan, onPlan, selected, onSelect, onAskAI }) {
   const [from, setFrom] = useState(EMPTY);
   const [to, setTo] = useState(EMPTY);
   const [typed, setTyped] = useState({ from: false, to: false });
+  const latestCheck = useRef(0);
+  const fromVersion = useRef(0);
   const [mode, setMode] = useState('drive');
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -37,21 +39,36 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
       setError(!origin ? 'Choose a starting point.' : 'Choose a destination.');
       return;
     }
+    // Only the latest check may update the panel; an older, slower one is dropped.
+    const request = ++latestCheck.current;
     setLoading(true);
     setError(null);
     try {
       const result = await planRoute({ from: origin, to: destination, mode, zones, isAtRisk, avoidHighRisk });
+      if (request !== latestCheck.current) return;
       setTyped({ from: !start.place, to: !end.place });
       onPlan(result);
       onSelect(result.safer ? 'safer' : 'fastest');
       setShowSteps(false);
     } catch (err) {
+      if (request !== latestCheck.current) return;
       setError(err.message);
       onPlan(null);
     } finally {
-      setLoading(false);
+      if (request === latestCheck.current) setLoading(false);
     }
   }
+
+  // Changing the trip makes any shown route (and any check in flight) out of date.
+  function tripChanged() {
+    latestCheck.current++;
+    setLoading(false);
+    setError(null);
+    if (plan) onPlan(null);
+  }
+  const changeFrom = value => { fromVersion.current++; setFrom(value); tripChanged(); };
+  const changeTo = value => { setTo(value); tripChanged(); };
+  const changeMode = value => { if (value !== mode) { setMode(value); tripChanged(); } };
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -60,14 +77,17 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
     }
     setLocating(true);
     setError(null);
+    const version = fromVersion.current;
     navigator.geolocation.getCurrentPosition(
       pos => {
-        setFrom({ text: 'My location', place: { lat: pos.coords.latitude, lon: pos.coords.longitude, label: 'My location' } });
         setLocating(false);
+        if (fromVersion.current !== version) return; // the start was changed meanwhile
+        changeFrom({ text: 'My location', place: { lat: pos.coords.latitude, lon: pos.coords.longitude, label: 'My location' } });
       },
       () => {
-        setError('Location permission was denied or unavailable. Type a starting point instead.');
         setLocating(false);
+        if (fromVersion.current !== version) return;
+        setError('Location permission was denied or unavailable. Type a starting point instead.');
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -87,24 +107,28 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
   const riskyStart = plan ? plan.startZones.filter(z => isAtRisk(z.properties)) : [];
   const riskyEnd = plan ? plan.endZones.filter(z => isAtRisk(z.properties)) : [];
   const highOnRoute = route ? route.zones.filter(z => !isEndpoint(z) && z.properties.risk === 'high') : [];
+  const unknownOnRoute = route ? route.zones.filter(z => !isRiskKnown(z.properties)) : [];
+  const riskNow = plan ? plan.fastest.zones.filter(z => isAtRisk(z.properties)).map(z => z.properties.name).sort().join('|') : '';
+  const stale = plan && riskNow !== plan.riskAtCheck;
+  const recheck = () => check({ start: { text: plan.from.label, place: plan.from }, end: { text: plan.to.label, place: plan.to }, avoidHighRisk: plan.avoidHighRisk });
 
   return (
     <>
       <div style={st.sectionLabel}>Check Route Safety</div>
 
-      <PlaceInput value={from} onChange={setFrom} onSubmit={() => check()} label="Starting point"
+      <PlaceInput value={from} onChange={changeFrom} onSubmit={() => check()} label="Starting point"
         placeholder="From (e.g. Westlands)" icon="ti-map-pin" iconColor="#1D9E75">
         <button onClick={useMyLocation} disabled={locating} title="Use my location" aria-label="Use my location" style={st.iconBtn}>
           <i className={`ti ${locating ? 'ti-loader-2' : 'ti-current-location'}`} style={{ fontSize: 15 }} aria-hidden="true" />
         </button>
       </PlaceInput>
 
-      <PlaceInput value={to} onChange={setTo} onSubmit={() => check()} label="Destination"
+      <PlaceInput value={to} onChange={changeTo} onSubmit={() => check()} label="Destination"
         placeholder="To (e.g. JKIA)" icon="ti-flag" iconColor="#EF9F27" />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }} role="radiogroup" aria-label="Travel mode">
         {[['drive', 'ti-car', 'Drive'], ['walk', 'ti-walk', 'Walk']].map(([id, icon, label]) => (
-          <button key={id} role="radio" aria-checked={mode === id} onClick={() => setMode(id)}
+          <button key={id} role="radio" aria-checked={mode === id} onClick={() => changeMode(id)}
             style={{ ...st.modeBtn, ...(mode === id ? st.modeBtnActive : {}) }}>
             <i className={`ti ${icon}`} style={{ fontSize: 13 }} aria-hidden="true" /> {label}
           </button>
@@ -160,9 +184,18 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
             <div style={st.notice('#E24B4A')}>Your destination is in {names(riskyEnd)}, which {isAre(riskyEnd)} at flood risk right now.</div>
           )}
           {plan.saferError && (
-            <div style={st.notice('#EF9F27')}>Couldn't find a route around {names(plan.avoided)}: {plan.saferError}</div>
+            <div style={st.notice('#EF9F27')}>Couldn't find a route around {names(plan.wanted)}: {plan.saferError}</div>
           )}
-          {riskyOnRoute.length === 0 && riskyStart.length === 0 && riskyEnd.length === 0 && (
+          {stale && (
+            <div style={st.notice('#EF9F27')}>
+              Flood risk along this route has changed since it was checked.{' '}
+              <button onClick={recheck} disabled={loading} style={st.linkBtn}>Check again</button>
+            </div>
+          )}
+          {unknownOnRoute.length > 0 && (
+            <div style={st.notice('#888')}>Flood risk for {names(unknownOnRoute)} can't be checked right now, because live data is unavailable.</div>
+          )}
+          {riskyOnRoute.length === 0 && riskyStart.length === 0 && riskyEnd.length === 0 && unknownOnRoute.length === 0 && (
             <div style={st.notice('#1D9E75')}>
               {route.zones.length
                 ? `None of the flood zones on this route (${names(route.zones)}) is at risk right now.`
@@ -226,8 +259,8 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
             onClick={() => {
               const start = { text: place.label, place };
               const end = { text: quickTo.label, place: quickTo };
-              setFrom(start);
-              setTo(end);
+              changeFrom(start);
+              changeTo(end);
               check({ start, end });
             }}>
             <i className="ti ti-arrow-right" style={{ fontSize: 11 }} aria-hidden="true" /> {place.label} to {quickTo.label}
@@ -248,6 +281,7 @@ const st = {
   routeCardActive: { border: '1px solid #1D9E75', background: '#1D9E7512' },
   notice: color => ({ marginTop: 6, padding: '6px 8px', borderRadius: 6, fontSize: 11, lineHeight: 1.5, background: color + '15', border: `1px solid ${color}30`, color }),
   chip: color => ({ fontSize: 10, padding: '2px 6px', borderRadius: 3, background: color + '20', color, border: `1px solid ${color}40` }),
+  linkBtn: { background: 'none', border: 'none', padding: 0, color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' },
   secondaryBtn: { width: '100%', marginTop: 6, padding: '7px 10px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#aaa', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 },
   steps: { margin: '8px 0 0', paddingLeft: 18, fontSize: 11, color: '#bbb', lineHeight: 1.5 },
   quickBtn: { padding: '8px 10px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#1D9E75', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 },
