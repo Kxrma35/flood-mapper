@@ -32,7 +32,7 @@ function requestForecast(points) {
         forecast_days: 2,
         timezone: 'Africa/Nairobi',
       },
-      timeout: 10000,
+      timeout: 30000, // many locations and variables can take Open-Meteo 15-20 s
     })
     .then(res => (Array.isArray(res.data) ? res.data : [res.data]));
 }

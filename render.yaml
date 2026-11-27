@@ -1,0 +1,40 @@
+# Render Blueprint for FloodSafe's two servers: the flood model (Python) and the backend
+# (Node). The website goes on Vercel (vercel.json). See "Deploying with Render and Vercel"
+# in the README.
+#
+# Secrets use `sync: false`: Render asks for them once, when the Blueprint is first created,
+# and they never go in this file.
+services:
+  - type: web
+    name: floodsafe-ml
+    runtime: python
+    plan: free
+    region: frankfurt
+    rootDir: ml
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn predict_server:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+
+  - type: web
+    name: floodsafe-backend
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      # Free services can't reach each other privately, so this is the model service's public
+      # URL, for example https://floodsafe-ml.onrender.com (shown on its page in Render).
+      - key: ML_URL
+        sync: false
+      - key: ORS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      # The website's address on Vercel, for example https://floodsafe.vercel.app
+      - key: FRONTEND_URL
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"

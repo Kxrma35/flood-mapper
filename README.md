@@ -363,6 +363,28 @@ Open that URL in a browser. The map, weather indicator, and AI chat should all b
 
 This project has three independently deployable parts. Each can be deployed to a different provider, as long as each one is told the correct URL of the others through environment variables.
 
+### Quick deploy: Render (servers) and Vercel (website)
+
+`render.yaml` defines the two servers for Render and `vercel.json` the website for Vercel, so most settings are already filled in. You need a Render account and a Vercel account (both can sign in with GitHub), your OpenRouteService key and an OpenAI key. The keys go only into the hosts' dashboards, never into the repo.
+
+1. **Render, the two servers.** In Render, choose **New → Blueprint** and pick this repository. Render reads `render.yaml` and lists `floodsafe-ml` and `floodsafe-backend`. It asks for four values:
+   - `ML_URL`: `https://floodsafe-ml.onrender.com`. If Render gives the model service a different address, use that one.
+   - `ORS_API_KEY` and `OPENAI_API_KEY`: your keys.
+   - `FRONTEND_URL`: leave it for now (step 3).
+
+   Apply it, and wait until both are live. `https://floodsafe-ml.onrender.com/health` and `https://floodsafe-backend.onrender.com/health` should both answer `{"status":"ok"}`.
+2. **Vercel, the website.** In Vercel, choose **Add New → Project** and import this repository, leaving the root directory as the repository root (`vercel.json` sets the build). Add the environment variable `VITE_API_URL` with the backend's address, for example `https://floodsafe-backend.onrender.com` (no trailing slash). Optionally add `VITE_CARTO_KEY` (see above). Then deploy, and note the site's address, for example `https://flood-mapper.vercel.app`.
+3. **Connect them.** In Render, open `floodsafe-backend` → **Environment**, set `FRONTEND_URL` to the site's address from step 2 (no trailing slash), and save. Render redeploys it. Until this is set, the backend refuses the website's requests (CORS).
+
+What to expect on the free plans:
+
+- **Sleeping servers.** Render's free servers sleep after 15 minutes without traffic and take about a minute to wake. The first visit after a quiet spell shows "unavailable" briefly: the app retries every 30 seconds, and the backend wakes the model service as soon as it wakes itself.
+- **Monthly hours.** Render gives 750 free hours a month per workspace, shared by both servers. That's enough because they sleep when nobody is using the site; two servers busy around the clock would use about 1,490.
+- **Preview deployments.** Vercel preview builds have their own addresses, which the backend doesn't allow; only `FRONTEND_URL` is allowed.
+- **Costs and quotas.** Every chat question costs OpenAI usage, and OpenRouteService has daily quotas. Both are rate-limited per visitor (see Known Limitations).
+
+The sections below explain each part in more detail, for other hosts.
+
 ### Deploying the ML Service (Flask)
 
 The ML service needs a Python runtime that can keep a process running continuously to serve requests (not a one-shot script runner).

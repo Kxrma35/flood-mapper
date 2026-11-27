@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
+const axios   = require('axios');
 
 const app = express();   // ← must come FIRST
 
@@ -29,4 +30,11 @@ app.use('/api/records', recordsRoute);
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend running on :${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Backend running on :${PORT}`);
+  // On free hosting both servers sleep when idle; wake the model service as soon as this one
+  // wakes, so the first predictions don't wait for it.
+  if (process.env.ML_URL) {
+    axios.get(`${process.env.ML_URL}/health`, { timeout: 90000 }).catch(() => {});
+  }
+});
