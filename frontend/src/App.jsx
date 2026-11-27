@@ -325,6 +325,12 @@ export default function App() {
                 </button>
               </div>
               <div style={{ fontSize: 11, color: '#888', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {zonesAreSample && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '6px 8px', borderRadius: 6, background: '#EF9F2715', border: '1px solid #EF9F2730', color: '#EF9F27' }}>
+                    <i className="ti ti-info-circle" style={{ fontSize: 13, marginTop: 1 }} aria-hidden="true" />
+                    <span>Sample data: this zone's risk level, threshold, residents and notes are placeholders with no verified source.</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <i className="ti ti-droplet" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
                   <span>Flood threshold: <span style={{ color: '#e8e8e8' }}>{selectedZone.rain_threshold}mm/hr</span></span>
