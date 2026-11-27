@@ -1,0 +1,147 @@
+[
+ {
+  "id": "2018-03-15-nairobi",
+  "date": "2018-03-15",
+  "date_note": "Kenya Red Cross posts of 15 March; the school closures happened over the days before.",
+  "places": [
+   "Mukuru informal settlements",
+   "Embakasi Girls Secondary School"
+  ],
+  "description": "The Ngong River burst its banks, cutting off two schools in Mukuru; about nine schools in Nairobi closed. Nairobi recorded 59 mm of rain in the 24 hours to 15 March.",
+  "reported_by": "Kenya Red Cross",
+  "sources": [
+   {
+    "publisher": "FloodList",
+    "title": "Kenya – Deadly Floods Strike Again",
+    "published": "2018-03-18",
+    "url": "https://floodlist.com/africa/kenya-floods-mid-march-2018"
+   }
+  ]
+ },
+ {
+  "id": "2024-04-24-nairobi",
+  "date": "2024-04-24",
+  "date_note": "Overnight rain into Wednesday 24 April.",
+  "places": [
+   "Mathare",
+   "Mukuru",
+   "Huruma",
+   "Ruaraka",
+   "Baba Dogo",
+   "Bosnia",
+   "Umoja 3",
+   "Choka",
+   "Njiru",
+   "Ruai",
+   "Utawala",
+   "Githurai",
+   "Kahawa"
+  ],
+  "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+  "reported_by": "Police, Nairobi County, Kenya Red Cross",
+  "sources": [
+   {
+    "publisher": "Terra Daily (AFP)",
+    "title": "10 dead as floods wreak havoc in Kenyan capital",
+    "published": "2024-04-24",
+    "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+   },
+   {
+    "publisher": "Kenyans.co.ke",
+    "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+    "published": "2024-05-09",
+    "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+   }
+  ]
+ },
+ {
+  "id": "2026-03-06-nairobi",
+  "date": "2026-03-06",
+  "date_end": "2026-03-07",
+  "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+  "places": [
+   "Pipeline",
+   "Embakasi",
+   "Mukuru Kwa Njenga",
+   "Mukuru kwa Reuben",
+   "Viwandani",
+   "Kibra",
+   "Mathare",
+   "Huruma",
+   "Baba Dogo",
+   "Bosnia",
+   "South B",
+   "South C",
+   "Nairobi West",
+   "Lang'ata",
+   "Umoja 3",
+   "Chokaa",
+   "Njiru",
+   "Ruai",
+   "Utawala",
+   "Roysambu",
+   "Kahawa West",
+   "Githurai",
+   "Loresho",
+   "Westlands",
+   "Kawangware",
+   "Eastleigh",
+   "Dandora",
+   "Kariobangi",
+   "Parklands",
+   "Kware",
+   "Starehe",
+   "Kamukunji"
+  ],
+  "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+  "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+  "sources": [
+   {
+    "publisher": "Citizen Digital",
+    "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+    "published": "2026-03-07",
+    "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+   },
+   {
+    "publisher": "The Star",
+    "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+    "published": "2026-03-07",
+    "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+   },
+   {
+    "publisher": "Wikipedia",
+    "title": "2026 Kenya floods",
+    "published": "2026-09-27",
+    "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+   }
+  ]
+ },
+ {
+  "id": "2026-03-14-nairobi",
+  "date": "2026-03-14",
+  "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+  "places": [
+   "Parklands",
+   "CBD",
+   "Ngong Road near Ngando",
+   "Lower Kabete",
+   "Kibera",
+   "Kilimani",
+   "South B",
+   "Kawangware",
+   "Lang'ata",
+   "Lavington",
+   "Eastleigh"
+  ],
+  "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+  "reported_by": "Kenya Red Cross",
+  "sources": [
+   {
+    "publisher": "Kenyans.co.ke",
+    "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+    "published": "2026-03-15",
+    "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+   }
+  ]
+ }
+]

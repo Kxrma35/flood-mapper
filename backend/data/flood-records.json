@@ -6,6 +6,11 @@
    "url": "https://www.desinventar.net/DesInventar/profiletab.jsp?countrycode=ken",
    "terms": "Owned by the contributing Kenyan institutions; shared publicly with a request for citation."
   },
+  "reports": {
+   "name": "News and agency reports of Nairobi floods since 2017 (ml/flood_reports.json)",
+   "url": "https://github.com/Kxrma35/flood-mapper/blob/main/ml/flood_reports.json",
+   "terms": "Summarised in FloodSafe's own words, with a link to each report."
+  },
   "unosat": {
    "name": "UNITAR-UNOSAT, Flood impact analysis in Nairobi, Kenya, as of 1 May 2024 (preliminary, not field-validated)",
    "url": "https://data.humdata.org/dataset/70148c8d-4d8a-4e70-8c03-c9bb8370cfb7",
@@ -360,6 +365,27 @@
    "source_id": "24235"
   },
   {
+   "date": "2018-03-15",
+   "date_end": null,
+   "date_note": "Kenya Red Cross posts of 15 March; the school closures happened over the days before.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "The Ngong River burst its banks, cutting off two schools in Mukuru; about nine schools in Nairobi closed. Nairobi recorded 59 mm of rain in the 24 hours to 15 March.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2018-03-15-nairobi",
+   "links": [
+    {
+     "publisher": "FloodList",
+     "title": "Kenya – Deadly Floods Strike Again",
+     "published": "2018-03-18",
+     "url": "https://floodlist.com/africa/kenya-floods-mid-march-2018"
+    }
+   ],
+   "zone": null,
+   "place": "Mukuru informal settlements, Embakasi Girls Secondary School"
+  },
+  {
    "date": "2022-04-29",
    "place": "Kibarage area, Mowlem",
    "zone": null,
@@ -371,6 +397,1176 @@
    "reported_by": "Police report",
    "source": "desinventar",
    "source_id": "31444"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Mathare",
+   "place": "Mathare"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Ruaraka",
+   "place": "Ruaraka"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Babadogo",
+   "place": "Baba Dogo"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Umoja",
+   "place": "Umoja 3"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Ruai",
+   "place": "Ruai"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Utawala",
+   "place": "Utawala"
+  },
+  {
+   "date": "2024-04-24",
+   "date_end": null,
+   "date_note": "Overnight rain into Wednesday 24 April.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Flash floods across Nairobi; people were rescued from rooftops in Mathare. Across the city, police counted at least 10 dead, with others missing, and the county governor's office said about 60,000 people were severely affected.",
+   "reported_by": "Police, Nairobi County, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2024-04-24-nairobi",
+   "links": [
+    {
+     "publisher": "Terra Daily (AFP)",
+     "title": "10 dead as floods wreak havoc in Kenyan capital",
+     "published": "2024-04-24",
+     "url": "https://terradaily.com/10-dead-as-floods-wreak-havoc-in-kenyan-capital-999/"
+    },
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Overview of Flooded Nairobi Estates and Those That Did Not Suffer Flooding",
+     "published": "2024-05-09",
+     "url": "https://www.kenyans.co.ke/news/100543-overview-flooded-nairobi-estates-and-those-did-not-suffer-flooding"
+    }
+   ],
+   "zone": "Githurai",
+   "place": "Githurai"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Pipeline",
+   "place": "Pipeline"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Mukuru Kwa Njenga",
+   "place": "Mukuru Kwa Njenga"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Mukuru Kwa Ruben",
+   "place": "Mukuru kwa Reuben"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Viwandani",
+   "place": "Viwandani"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Kibera",
+   "place": "Kibra"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Mathare",
+   "place": "Mathare"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Babadogo",
+   "place": "Baba Dogo"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "South B",
+   "place": "South B"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "South C",
+   "place": "South C"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Nairobi West",
+   "place": "Nairobi West"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Langata",
+   "place": "Lang'ata"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Umoja",
+   "place": "Umoja 3"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Ruai",
+   "place": "Ruai"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Utawala",
+   "place": "Utawala"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Roysambu",
+   "place": "Roysambu"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Kahawa West",
+   "place": "Kahawa West"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Githurai",
+   "place": "Githurai"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Loresho",
+   "place": "Loresho"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Westlands",
+   "place": "Westlands"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Kawangware",
+   "place": "Kawangware"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Eastleigh",
+   "place": "Eastleigh"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Dandora",
+   "place": "Dandora"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Kariobangi",
+   "place": "Kariobangi"
+  },
+  {
+   "date": "2026-03-06",
+   "date_end": "2026-03-07",
+   "date_note": "Night of Friday 6 to Saturday 7 March, after heavy rain on 6 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Overnight floods across Nairobi after the Nairobi River burst its banks. Across the city, police first confirmed 10 deaths and 71 vehicles caught by floodwater; later reports put the toll at 23, most recovered from rivers in Starehe and Kamukunji.",
+   "reported_by": "Police, Ministry of Interior, Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-06-nairobi",
+   "links": [
+    {
+     "publisher": "Citizen Digital",
+     "title": "10 people killed in Nairobi as heavy overnight rains trigger floods",
+     "published": "2026-03-07",
+     "url": "https://citizen.digital/article/10-people-killed-in-nairobi-as-heavy-overnight-rains-trigger-floods-n378628"
+    },
+    {
+     "publisher": "The Star",
+     "title": "Flood death toll rises to 25 as raging rivers wreak havoc in Nairobi",
+     "published": "2026-03-07",
+     "url": "https://www.the-star.co.ke/news/2026-03-07-flood-death-toll-rises-to-25-as-raging-rivers-wreak-havoc-in-nairobi"
+    },
+    {
+     "publisher": "Wikipedia",
+     "title": "2026 Kenya floods",
+     "published": "2026-09-27",
+     "url": "https://en.wikipedia.org/wiki/2026_Kenya_floods"
+    }
+   ],
+   "zone": "Parklands",
+   "place": "Parklands"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Parklands",
+   "place": "Parklands"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "CBD",
+   "place": "CBD"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Kibera",
+   "place": "Kibera"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Kilimani",
+   "place": "Kilimani"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "South B",
+   "place": "South B"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Kawangware",
+   "place": "Kawangware"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Langata",
+   "place": "Lang'ata"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Lavington",
+   "place": "Lavington"
+  },
+  {
+   "date": "2026-03-14",
+   "date_end": null,
+   "date_note": "\"Saturday evening\" in a report published on Sunday 15 March.",
+   "cause": "Rain",
+   "impacts": {},
+   "description": "An evening downpour flooded roads and estates as the Nairobi and Ngong rivers overflowed. The Kenya Red Cross rescued 11 people from a matatu on Bunyala Road and reported no deaths from this wave.",
+   "reported_by": "Kenya Red Cross",
+   "source": "reports",
+   "source_id": "2026-03-14-nairobi",
+   "links": [
+    {
+     "publisher": "Kenyans.co.ke",
+     "title": "Saturday Night Floods Submerge Roads and Estates Across Nairobi",
+     "published": "2026-03-15",
+     "url": "https://www.kenyans.co.ke/news/121685-saturday-night-floods-submerge-roads-and-estates-across-nairobi"
+    }
+   ],
+   "zone": "Eastleigh",
+   "place": "Eastleigh"
   }
  ],
  "satellite_2024": {
@@ -409,6 +1605,13 @@
     "cloud_pct": 20.6,
     "flooded_pct": 2.7,
     "affected_structures": 141
+   },
+   "Eastleigh": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 28.1,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
    },
    "Githurai": {
     "analysed": true,
@@ -471,6 +1674,15 @@
     "flooded_pct": 3.1,
     "affected_structures": 423
    },
+   "Langata": {
+    "analysed": false
+   },
+   "Lavington": {
+    "analysed": false
+   },
+   "Loresho": {
+    "analysed": false
+   },
    "Makadara": {
     "analysed": true,
     "analysed_pct": 100.0,
@@ -506,12 +1718,32 @@
     "flooded_pct": 2.5,
     "affected_structures": 323
    },
+   "Nairobi West": {
+    "analysed": false
+   },
    "New Njiru Town": {
     "analysed": true,
     "analysed_pct": 100.0,
     "cloud_pct": 1.7,
     "flooded_pct": 1.8,
     "affected_structures": 147
+   },
+   "Parklands": {
+    "analysed": false
+   },
+   "Pipeline": {
+    "analysed": true,
+    "analysed_pct": 64.1,
+    "cloud_pct": 0.0,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Roysambu": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 66.5,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
    },
    "Ruai": {
     "analysed": true,
@@ -527,6 +1759,12 @@
     "flooded_pct": 4.2,
     "affected_structures": 98
    },
+   "South B": {
+    "analysed": false
+   },
+   "South C": {
+    "analysed": false
+   },
    "Soweto": {
     "analysed": true,
     "analysed_pct": 100.0,
@@ -541,6 +1779,20 @@
     "flooded_pct": 2.3,
     "affected_structures": 82
    },
+   "Umoja": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Utawala": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
    "Uthiru": {
     "analysed": false
    },
@@ -550,6 +1802,9 @@
     "cloud_pct": 81.6,
     "flooded_pct": 0.1,
     "affected_structures": 45
+   },
+   "Westlands": {
+    "analysed": false
    },
    "Zimmerman": {
     "analysed": true,

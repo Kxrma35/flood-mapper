@@ -20,6 +20,14 @@ export function formatRecordDate(value) {
   return new Date(Date.UTC(year, month - 1, day || 1)).toLocaleDateString('en-GB', options);
 }
 
+// "6–7 Mar 2026" for a flood over several days, otherwise the single date.
+export function formatRecordDates(record) {
+  const { date, date_end: end } = record;
+  if (!end || end === date) return formatRecordDate(date);
+  if (date.slice(0, 7) === end.slice(0, 7)) return `${Number(date.slice(8))}–${formatRecordDate(end)}`;
+  return `${formatRecordDate(date)} – ${formatRecordDate(end)}`;
+}
+
 export function satelliteSummary(zone, radiusKm) {
   if (!zone) return null;
   if (!zone.analysed) return 'Outside the area UNOSAT analysed.';

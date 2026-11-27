@@ -7,6 +7,7 @@ const NAMED_BY = {
 };
 const OTHER_EVIDENCE = {
   desinventar: 'Flood reports (DesInventar)',
+  reports: 'Floods in the news, 2018–2026',
   unosat: 'Flooding seen by satellite, 1 May 2024 (UNOSAT)',
 };
 

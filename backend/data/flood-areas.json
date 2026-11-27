@@ -34,6 +34,7 @@
    "latitude": -1.24616,
    "longitude": 36.88265,
    "evidence": [
+    "reports",
     "unosat"
    ],
    "hazard": {
@@ -60,7 +61,8 @@
    "latitude": -1.28635,
    "longitude": 36.82129,
    "evidence": [
-    "desinventar"
+    "desinventar",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 22.1,
@@ -73,6 +75,7 @@
    "latitude": -1.24491,
    "longitude": 36.90608,
    "evidence": [
+    "reports",
     "unosat"
    ],
    "hazard": {
@@ -94,11 +97,25 @@
    }
   },
   {
+   "name": "Eastleigh",
+   "osm": "node/1271148451",
+   "latitude": -1.27434,
+   "longitude": 36.84896,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 13.8,
+    "deep_pct": 0.0
+   }
+  },
+  {
    "name": "Githurai",
    "osm": "node/6346946570",
    "latitude": -1.20284,
    "longitude": 36.91686,
    "evidence": [
+    "reports",
     "unosat"
    ],
    "hazard": {
@@ -126,6 +143,7 @@
    "latitude": -1.18631,
    "longitude": 36.90681,
    "evidence": [
+    "reports",
     "unosat"
    ],
    "hazard": {
@@ -149,6 +167,7 @@
    "latitude": -1.25909,
    "longitude": 36.88191,
    "evidence": [
+    "reports",
     "unosat"
    ],
    "hazard": {
@@ -162,7 +181,8 @@
    "latitude": -1.27846,
    "longitude": 36.75164,
    "evidence": [
-    "desinventar"
+    "desinventar",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 22.7,
@@ -190,7 +210,8 @@
    "evidence": [
     "space4all_report",
     "wri_brief",
-    "desinventar"
+    "desinventar",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 17.5,
@@ -203,7 +224,8 @@
    "latitude": -1.29601,
    "longitude": 36.78178,
    "evidence": [
-    "desinventar"
+    "desinventar",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 15.6,
@@ -238,6 +260,45 @@
    }
   },
   {
+   "name": "Langata",
+   "osm": "node/6065491374",
+   "latitude": -1.33289,
+   "longitude": 36.78167,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 14.6,
+    "deep_pct": 4.9
+   }
+  },
+  {
+   "name": "Lavington",
+   "osm": "node/5422065886",
+   "latitude": -1.27407,
+   "longitude": 36.77623,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 25.6,
+    "deep_pct": 9.3
+   }
+  },
+  {
+   "name": "Loresho",
+   "osm": "node/5580877220",
+   "latitude": -1.25682,
+   "longitude": 36.75211,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 20.1,
+    "deep_pct": 1.6
+   }
+  },
+  {
    "name": "Makadara",
    "osm": "node/10236095025",
    "latitude": -1.29522,
@@ -257,7 +318,8 @@
    "longitude": 36.84957,
    "evidence": [
     "space4all_report",
-    "wri_brief"
+    "wri_brief",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 21.5,
@@ -283,7 +345,8 @@
    "latitude": -1.31963,
    "longitude": 36.88653,
    "evidence": [
-    "wri_brief"
+    "wri_brief",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 13.7,
@@ -297,11 +360,25 @@
    "longitude": 36.8826,
    "evidence": [
     "wri_brief",
+    "reports",
     "unosat"
    ],
    "hazard": {
     "wet_pct": 27.0,
     "deep_pct": 8.6
+   }
+  },
+  {
+   "name": "Nairobi West",
+   "osm": "node/544377108",
+   "latitude": -1.3087,
+   "longitude": 36.8231,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 29.0,
+    "deep_pct": 9.6
    }
   },
   {
@@ -318,12 +395,52 @@
    }
   },
   {
+   "name": "Parklands",
+   "osm": "node/30402770",
+   "latitude": -1.26306,
+   "longitude": 36.81063,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 17.9,
+    "deep_pct": 4.2
+   }
+  },
+  {
+   "name": "Pipeline",
+   "osm": "node/10271095496",
+   "latitude": -1.32006,
+   "longitude": 36.89358,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 5.8,
+    "deep_pct": 0.0
+   }
+  },
+  {
+   "name": "Roysambu",
+   "osm": "node/4194272131",
+   "latitude": -1.21884,
+   "longitude": 36.88674,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 20.9,
+    "deep_pct": 5.4
+   }
+  },
+  {
    "name": "Ruai",
    "osm": "node/529361284",
    "latitude": -1.269,
    "longitude": 36.99155,
    "evidence": [
-    "desinventar"
+    "desinventar",
+    "reports"
    ],
    "hazard": {
     "wet_pct": 4.1,
@@ -336,11 +453,38 @@
    "latitude": -1.24299,
    "longitude": 36.87562,
    "evidence": [
+    "reports",
     "unosat"
    ],
    "hazard": {
     "wet_pct": 22.1,
     "deep_pct": 16.0
+   }
+  },
+  {
+   "name": "South B",
+   "osm": "node/10271121690",
+   "latitude": -1.31417,
+   "longitude": 36.83767,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 22.9,
+    "deep_pct": 7.9
+   }
+  },
+  {
+   "name": "South C",
+   "osm": "node/30031480",
+   "latitude": -1.31884,
+   "longitude": 36.82782,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 23.9,
+    "deep_pct": 1.9
    }
   },
   {
@@ -370,6 +514,32 @@
    }
   },
   {
+   "name": "Umoja",
+   "osm": "node/11407583720",
+   "latitude": -1.28344,
+   "longitude": 36.89284,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 6.4,
+    "deep_pct": 0.0
+   }
+  },
+  {
+   "name": "Utawala",
+   "osm": "node/11786729828",
+   "latitude": -1.28438,
+   "longitude": 36.96807,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 16.9,
+    "deep_pct": 1.3
+   }
+  },
+  {
    "name": "Uthiru",
    "osm": "node/11913250811",
    "latitude": -1.26068,
@@ -389,11 +559,25 @@
    "longitude": 36.87088,
    "evidence": [
     "wri_brief",
+    "reports",
     "unosat"
    ],
    "hazard": {
     "wet_pct": 19.7,
     "deep_pct": 0.0
+   }
+  },
+  {
+   "name": "Westlands",
+   "osm": "node/30121815",
+   "latitude": -1.26476,
+   "longitude": 36.80184,
+   "evidence": [
+    "reports"
+   ],
+   "hazard": {
+    "wet_pct": 31.3,
+    "deep_pct": 15.0
    }
   },
   {
