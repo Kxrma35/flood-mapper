@@ -4,7 +4,9 @@
 
 const FLOOD_RECORDS = require('../data/flood-records.json');
 
+// Records were matched against the sample zones only; other areas have no answer either way.
+const wasMatched = name => Object.hasOwn(FLOOD_RECORDS.satellite_2024.zones, name);
 const recordsForZone = name => FLOOD_RECORDS.records.filter(r => r.zone === name);
 const satelliteForZone = name => FLOOD_RECORDS.satellite_2024.zones[name] ?? null;
 
-module.exports = { FLOOD_RECORDS, recordsForZone, satelliteForZone };
+module.exports = { FLOOD_RECORDS, wasMatched, recordsForZone, satelliteForZone };

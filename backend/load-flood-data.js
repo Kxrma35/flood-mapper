@@ -3,7 +3,7 @@
 
 const { SAMPLE_ZONES, loadDatasetZones } = require('./lib/zones');
 const { DATASET_PATH } = require('./lib/dataset');
-const { recordsForZone, satelliteForZone } = require('./lib/flood-records');
+const { wasMatched, recordsForZone, satelliteForZone } = require('./lib/flood-records');
 
 // Dataset text is data, so it is kept to one line and can't close the <areas> block.
 const asDataText = text => String(text).replace(/[\r\n<>]+/g, ' ').trim();
@@ -14,6 +14,7 @@ const IMPACTS = {
 };
 
 function describeRecords(name) {
+  if (!wasMatched(name)) return 'recorded floods: not checked for this area';
   const reports = recordsForZone(name).map(r => {
     const impacts = Object.entries(IMPACTS).filter(([key]) => r.impacts[key]).map(([key, label]) => `${r.impacts[key]} ${label}`);
     const place = r.place && r.place.toLowerCase() !== name.toLowerCase() ? ` at ${asDataText(r.place)}` : '';

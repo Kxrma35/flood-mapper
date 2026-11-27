@@ -18,6 +18,15 @@ export default function ZoneHistory({ zoneName, data, error }) {
     );
   }
 
+  if (!Object.hasOwn(data.satellite_2024.zones, zoneName)) {
+    return (
+      <div style={row}>
+        <i className="ti ti-history" style={icon} aria-hidden="true" />
+        <span>Recorded floods have not been matched to this area yet.</span>
+      </div>
+    );
+  }
+
   const records = data.records.filter(r => r.zone === zoneName);
   const satellite = satelliteSummary(data.satellite_2024.zones[zoneName], data.near_zone_m / 1000);
 
