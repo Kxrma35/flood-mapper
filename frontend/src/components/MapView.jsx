@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 
 const RISK_COLORS = { high: '#E24B4A', medium: '#EF9F27', low: '#639922' };
 
-export default function MapView({ origin, destination, floodZones, onZoneClick, precipMm }) {
+export default function MapView({ origin, destination, floodZones, onZoneClick, precipMm, predictions = [] }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeLayerRef = useRef(null);
@@ -52,8 +52,12 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
       const { risk, name, rain_threshold } = feature.properties;
       const color = RISK_COLORS[risk] || '#888';
 
-      // Dynamically recolor based on current rain vs zone threshold (Phase 8)
-      const isActivelyFlooding = precipMm != null && precipMm >= rain_threshold;
+      // Colour is the zone's historical risk; the highlight is the live model risk,
+      // falling back to rain vs threshold while the ML service is unavailable.
+      const prediction = predictions.find(p => p.name === name);
+      const isActivelyFlooding = prediction
+        ? prediction.risk_level === 'HIGH'
+        : precipMm != null && precipMm >= rain_threshold;
       const fillOpacity = isActivelyFlooding ? 0.6 : 0.35;
 
       const poly = L.geoJSON(feature, {
@@ -86,7 +90,7 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
 
       zoneLayersRef.current.push(poly, marker);
     });
-  }, [floodZones, precipMm]);
+  }, [floodZones, precipMm, predictions]);
 
   // Draw route line whenever origin/destination changes
   useEffect(() => {
