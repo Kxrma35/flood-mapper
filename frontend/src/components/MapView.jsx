@@ -1,6 +1,6 @@
 // MapView.jsx
 // Renders the Leaflet dark map, draws flood zones from flood-zones.geojson,
-// shows a route line between origin and destination, and emits zone click events.
+// draws planned routes, and emits zone click events.
 
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
@@ -50,10 +50,10 @@ function zoneLabel(name, color, pulsing) {
   return el;
 }
 
-export default function MapView({ origin, destination, floodZones, onZoneClick, precipMm, predictions = [] }) {
+export default function MapView({ floodZones, onZoneClick, isAtRisk, routePlan, selectedRoute, onSelectRoute }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const routeLayerRef = useRef(null);
+  const routeLayersRef = useRef([]);
   const zoneLayersRef = useRef([]);
 
   // Initialise map once
@@ -86,15 +86,11 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
     zoneLayersRef.current = [];
 
     floodZones.features.forEach(feature => {
-      const { risk, name, rain_threshold } = feature.properties;
+      const { risk, name } = feature.properties;
       const color = RISK_COLORS[risk] || '#888';
 
-      // Colour is the zone's historical risk; the highlight is the live model risk,
-      // falling back to rain vs threshold while the ML service is unavailable.
-      const prediction = predictions.find(p => p.name === name);
-      const isActivelyFlooding = prediction
-        ? prediction.risk_level === 'HIGH'
-        : precipMm != null && rain_threshold != null && precipMm >= rain_threshold;
+      // Colour is the zone's historical risk; the highlight is whether it is at risk right now.
+      const isActivelyFlooding = isAtRisk(feature.properties);
       const fillOpacity = isActivelyFlooding ? 0.6 : 0.35;
 
       const poly = L.geoJSON(feature, {
@@ -120,52 +116,42 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
 
       zoneLayersRef.current.push(poly, marker);
     });
-  }, [floodZones, precipMm, predictions, onZoneClick]);
+  }, [floodZones, isAtRisk, onZoneClick]);
 
-  // Draw route line whenever origin/destination changes
+  // Draw the planned route(s): the selected one solid on top, the alternative dashed below.
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !floodZones?.features?.length) return;
+    if (!map) return;
+    routeLayersRef.current.forEach(l => map.removeLayer(l));
+    routeLayersRef.current = [];
+    if (!routePlan) return;
 
-    if (routeLayerRef.current) {
-      map.removeLayer(routeLayerRef.current);
-      routeLayerRef.current = null;
-    }
+    const toLatLngs = coordinates => coordinates.map(([lng, lat]) => [lat, lng]);
+    const routes = [['fastest', routePlan.fastest], ['safer', routePlan.safer]].filter(([, r]) => r);
+    const ordered = [...routes.filter(([key]) => key !== selectedRoute), ...routes.filter(([key]) => key === selectedRoute)];
 
-    const findLatLng = (name) => {
-      const match = floodZones.features.find(f =>
-        f.properties.name.toLowerCase().includes(name.toLowerCase())
-      );
-      if (match) {
-        const bounds = L.geoJSON(match).getBounds();
-        return bounds.getCenter();
-      }
-      return null;
-    };
+    ordered.forEach(([key, route]) => {
+      const selected = key === selectedRoute;
+      const line = L.polyline(toLatLngs(route.coordinates), selected
+        ? { color: '#1D9E75', weight: 5, opacity: 0.95 }
+        : { color: '#9a9a9a', weight: 4, opacity: 0.7, dashArray: '6 8' },
+      ).addTo(map);
+      if (!selected) line.on('click', () => onSelectRoute?.(key));
+      routeLayersRef.current.push(line);
+    });
 
-    const origLatLng = findLatLng(origin);
-    const destLatLng = findLatLng(destination);
+    const start = L.circleMarker([routePlan.from.lat, routePlan.from.lon], { radius: 7, color: '#fff', fillColor: '#1D9E75', fillOpacity: 1, weight: 2 }).addTo(map);
+    const end = L.circleMarker([routePlan.to.lat, routePlan.to.lon], { radius: 7, color: '#fff', fillColor: '#EF9F27', fillOpacity: 1, weight: 2 }).addTo(map);
+    routeLayersRef.current.push(start, end);
+  }, [routePlan, selectedRoute, onSelectRoute]);
 
-    if (origLatLng && destLatLng) {
-      const mid = L.latLng(
-        (origLatLng.lat + destLatLng.lat) / 2 - 0.008,
-        (origLatLng.lng + destLatLng.lng) / 2
-      );
-      const line = L.polyline([origLatLng, mid, destLatLng], {
-        color: '#1D9E75',
-        weight: 4,
-        opacity: 0.9,
-      }).addTo(map);
-
-      // Origin dot
-      L.circleMarker(origLatLng, { radius: 7, color: '#fff', fillColor: '#1D9E75', fillOpacity: 1, weight: 2 }).addTo(map);
-      // Destination dot
-      L.circleMarker(destLatLng, { radius: 7, color: '#fff', fillColor: '#EF9F27', fillOpacity: 1, weight: 2 }).addTo(map);
-
-      map.fitBounds(line.getBounds(), { padding: [60, 60] });
-      routeLayerRef.current = line;
-    }
-  }, [origin, destination, floodZones]);
+  // Zoom to a new plan once, not every time the selected route changes.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !routePlan) return;
+    const all = [routePlan.fastest, routePlan.safer].filter(Boolean).flatMap(r => r.coordinates);
+    map.fitBounds(all.map(([lng, lat]) => [lat, lng]), { padding: [60, 60] });
+  }, [routePlan]);
 
   return (
     <div style={{ position: 'relative', flex: 1, height: '100%' }}>
