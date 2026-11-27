@@ -1,6 +1,9 @@
 # features.py
 # Cleaning, model features and the rainfall-rule label, shared by train_model.py and
 # check_records.py. backend/lib/model-features.js mirrors the features for live predictions.
+import json
+import os
+
 import pandas as pd
 
 CELL = ["latitude", "longitude"]
@@ -47,8 +50,10 @@ def prepare(df):
 # The training label's rainfall rule, in mm over each window: a flood hour is one where any
 # total is above its threshold. Short downpours, or rain building up over three days (the
 # April-May 2024 and 6-7 March 2026 floods came from days of moderate rain). The 72-hour
-# threshold was chosen with threshold_tradeoff.py against the recorded floods.
-RULE = {"precipitation_mm": 10, "rain_3h_mm": 25, "rain_24h_mm": 50, "rain_72h_mm": 55}
+# threshold was chosen with threshold_tradeoff.py against the recorded floods. The backend reads
+# the same file to tell the AI chat what counts as heavy rain.
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend", "data", "flood-rule.json")) as f:
+    RULE = json.load(f)
 
 
 def rule_label(df):

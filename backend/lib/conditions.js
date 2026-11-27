@@ -1,4 +1,5 @@
 const axios = require('axios');
+const FLOOD_RULE = require('../data/flood-rule.json');
 const { fetchNairobiHourly, rainOverLast } = require('./open-meteo');
 const { modelFeatures } = require('./model-features');
 
@@ -38,9 +39,17 @@ async function currentConditions() {
   };
 }
 
+// Each rain total next to the threshold the model's flood rule uses for that window, so the AI
+// chat describes rain by the same standard as the model instead of by its own sense of "heavy".
+function againstRule(mm, limit, unit) {
+  if (mm == null) return 'not available';
+  const share = mm / limit;
+  const level = share > 1 ? 'ABOVE the flood threshold' : share >= 0.5 ? 'below the flood threshold, but over half of it' : 'well below the flood threshold';
+  return `${mm.toFixed(1)} ${unit} (${level} of ${limit} ${unit})`;
+}
+
 function describeConditions(c) {
   const clock = t => t.slice(11, 16);
-  const amount = (mm, unit) => (mm == null ? 'not available' : `${mm.toFixed(1)} ${unit}`);
   const forecast = c.forecast.length
     ? c.forecast.map(f => `${clock(f.time)} ${f.mm == null ? 'n/a' : f.mm.toFixed(1)}`).join(', ')
     : 'not available';
@@ -50,8 +59,10 @@ function describeConditions(c) {
 
   return [
     `Live conditions for central Nairobi at ${clock(c.time)} EAT (Open-Meteo):`,
-    `- Rain now: ${amount(c.rainNow, 'mm/hr')}`,
-    `- Rain over the last 3 hours: ${amount(c.rain3h, 'mm')}; last 24 hours: ${amount(c.rain24h, 'mm')}; last 3 days: ${amount(c.rain72h, 'mm')}`,
+    `- Rain now: ${againstRule(c.rainNow, FLOOD_RULE.precipitation_mm, 'mm/hr')}`,
+    `- Rain over the last 3 hours: ${againstRule(c.rain3h, FLOOD_RULE.rain_3h_mm, 'mm')}`,
+    `- Rain over the last 24 hours: ${againstRule(c.rain24h, FLOOD_RULE.rain_24h_mm, 'mm')}`,
+    `- Rain over the last 3 days: ${againstRule(c.rain72h, FLOOD_RULE.rain_72h_mm, 'mm')}`,
     `- Forecast for the next ${FORECAST_HOURS} hours (mm/hr): ${forecast}`,
     `- FloodSafe model: ${model}`,
   ].join('\n');
