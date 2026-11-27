@@ -125,6 +125,7 @@ flood-mapper/
 │   │   └── zones.js            The zones to predict for: your dataset's areas or the flood areas
 │   ├── data/flood-areas.json     The flood areas: places, evidence, modelled flooding (generated)
 │   ├── data/flood-records.json   Real Nairobi flood records per area (generated)
+│   ├── data/flood-rule.json      The model's rain thresholds, shared by training and the AI chat
 │   ├── data/your-flood-data.csv  Optional real area dataset
 │   ├── convert-csv.js          One-off script: CSV → GeoJSON for the map
 │   ├── load-flood-data.js      Builds the AI system prompt from the CSV or the flood areas
@@ -173,7 +174,7 @@ const mlRes = await axios.post(`${ML_URL}/predict`, { zones });
 
 ### Backend to OpenAI
 
-`/api/ask` gives the model a system prompt listing flood-prone areas. The list comes from `backend/data/your-flood-data.csv` when that file exists; otherwise it uses the same flood areas as the map, with each area's evidence, modelled flooding and recorded floods, and tells the model that no area has a risk level or threshold to quote. With each question the backend adds live conditions it fetches itself: rain now, over 3 hours, 24 hours and 3 days, the next 5 hours of forecast, and the flood model's estimate. The prompt tells the model to use only that data, never to invent road closures, river levels or official warnings, and to send anyone in danger to 999 or 112 and official alerts. The API key never reaches the browser.
+`/api/ask` gives the model a system prompt listing flood-prone areas. The list comes from `backend/data/your-flood-data.csv` when that file exists; otherwise it uses the same flood areas as the map, with each area's evidence, modelled flooding and recorded floods, and tells the model that no area has a risk level or threshold to quote. With each question the backend adds live conditions it fetches itself: rain now, over 3 hours, 24 hours and 3 days (each shown against the threshold in `backend/data/flood-rule.json`, the same rule the model is trained on), the next 5 hours of forecast, and the flood model's estimate. The prompt tells the model to use only that data, never to invent road closures, river levels or official warnings, and to send anyone in danger to 999 or 112 and official alerts. Its risk level is the flood model's level (UNKNOWN when the model is unavailable), and it describes rain only against those thresholds, so light rain is never called "significant". When the level is LOW it says so, never calls a trip "safe", and adds that the model has missed most recorded floods. The API key never reaches the browser.
 
 ### The ML Service Itself
 
