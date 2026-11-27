@@ -19,6 +19,8 @@ const ALERTS = [
 
 const QUICK_CHECKS = ['Westlands', 'Eastlands', 'Kibera', 'Buruburu'];
 
+const API = import.meta.env.VITE_API_URL || '';
+
 export default function App() {
   const [origin, setOrigin] = useState('Westlands');
   const [destination, setDestination] = useState('CBD');
@@ -96,10 +98,16 @@ export default function App() {
 
   useEffect(() => {
     const fetchPredictions = () => {
-      fetch('/api/predict')
-        .then(r => r.json())
-        .then(setPredictions)
-        .catch(console.error);
+      fetch(`${API}/api/predict`)
+        .then(r => r.json().then(body => {
+          if (!r.ok || !Array.isArray(body)) throw new Error(body?.error || `HTTP ${r.status}`);
+          return body;
+        }))
+        .then(results => setPredictions(results.filter(p => p.flood_probability != null)))
+        .catch(err => {
+          console.error('Prediction failed:', err.message);
+          setPredictions([]);
+        });
     };
     fetchPredictions();
     const t = setInterval(fetchPredictions, 10 * 60 * 1000); // every 10 min
@@ -107,6 +115,7 @@ export default function App() {
   }, []);
 
   const precipMm = weather?.current_mm_per_hour ?? null;
+  const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
   const formatTime = d => d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const formatDate = d => d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -280,6 +289,7 @@ export default function App() {
             floodZones={floodZones}
             onZoneClick={setSelectedZone}
             precipMm={precipMm}
+            predictions={predictions}
           />
 
           {/* Zone detail overlay */}
@@ -309,6 +319,14 @@ export default function App() {
                   <i className="ti ti-notes" style={{ fontSize: 13, color: '#555', marginTop: 1 }} aria-hidden="true" />
                   <span style={{ color: '#bbb' }}>{selectedZone.notes}</span>
                 </div>
+                {selectedPrediction && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="ti ti-chart-line" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
+                    <span>Model flood probability: <span style={{ color: riskColor(selectedPrediction.risk_level.toLowerCase()) }}>
+                      {(selectedPrediction.flood_probability * 100).toFixed(0)}% ({selectedPrediction.risk_level})
+                    </span></span>
+                  </div>
+                )}
                 {precipMm != null && (
                   <div style={{
                     marginTop: 4, padding: '6px 8px', borderRadius: 6,

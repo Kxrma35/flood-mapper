@@ -1,5 +1,6 @@
 const express = require('express');
 const axios   = require('axios');
+const { fetchNairobiHourly, rainOverLast } = require('../lib/open-meteo');
 const router  = express.Router();
 
 const ML_URL = process.env.ML_URL || 'http://localhost:5001';
@@ -15,70 +16,48 @@ const ZONES = [
   { name: 'CBD',               latitude: -1.284, longitude: 36.822 },
 ];
 
-async function fetchWeather() {
-  const url =
-    'https://api.open-meteo.com/v1/forecast' +
-    '?latitude=-1.286&longitude=36.817' +
-    '&hourly=precipitation,rain,weathercode,windspeed_10m,relativehumidity_2m,temperature_2m,cloudcover' +
-    '&forecast_days=2&timezone=Africa%2FNairobi';
-  const { data } = await axios.get(url);
+// Must match FEATURES in ml/train_model.py, including how each one is derived.
+function modelFeatures(hourly, index, currentTime) {
+  const [year, month, day] = currentTime.slice(0, 10).split('-').map(Number);
+  const hour = Number(currentTime.slice(11, 13));
+  const dayOfYear = (Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 1)) / 86400000 + 1;
 
-  const now       = new Date();
-  const hourIndex = now.getHours();
-
-  const precip  = data.hourly.precipitation  ?? [];
-  const rain    = data.hourly.rain            ?? [];
-  const humidity= data.hourly.relativehumidity_2m ?? [];
-  const wind    = data.hourly.windspeed_10m   ?? [];
-  const temp    = data.hourly.temperature_2m  ?? [];
-  const cloud   = data.hourly.cloudcover      ?? [];
-
-  const current_mm_per_hour = precip[hourIndex] ?? 0;
-
-  const rolling = {
-    rain_3h_mm:  precip.slice(Math.max(0, hourIndex - 3),  hourIndex + 1).reduce((a, b) => a + b, 0),
-    rain_6h_mm:  precip.slice(Math.max(0, hourIndex - 6),  hourIndex + 1).reduce((a, b) => a + b, 0),
-    rain_24h_mm: precip.slice(Math.max(0, hourIndex - 24), hourIndex + 1).reduce((a, b) => a + b, 0),
-  };
+  const precipitation = hourly.precipitation[index] ?? 0;
+  const humidity      = hourly.relativehumidity_2m[index] ?? 60;
 
   return {
-    current_mm_per_hour,
-    rolling,
-    humidity_pct:  humidity[hourIndex] ?? 60,
-    wind_kmh:      wind[hourIndex]     ?? 0,
-    temperature_c: temp[hourIndex]     ?? 20,
-    cloud_cover:   cloud[hourIndex]    ?? 0,
+    precipitation_mm: precipitation,
+    rain_3h_mm:       rainOverLast(hourly, index, 3),
+    rain_6h_mm:       rainOverLast(hourly, index, 6),
+    rain_24h_mm:      rainOverLast(hourly, index, 24),
+    rain_48h_mm:      rainOverLast(hourly, index, 48),
+    humidity,
+    wind_speed:       hourly.windspeed_10m[index] ?? 0,
+    temperature:      hourly.temperature_2m[index] ?? 20,
+    cloud_cover:      hourly.cloudcover[index] ?? 0,
+    month,
+    hour,
+    day_of_year:      dayOfYear,
+    is_rainy_season:  [3, 4, 5, 10, 11, 12].includes(month) ? 1 : 0,
+    is_peak_month:    [4, 11].includes(month) ? 1 : 0,
+    is_afternoon:     hour >= 14 && hour <= 17 ? 1 : 0,
+    is_night:         hour <= 5 ? 1 : 0,
+    is_heavy_rain:    precipitation > 7.5 ? 1 : 0,
+    humidity_rain:    humidity * precipitation / 100,
   };
 }
 
 router.get('/', async (req, res) => {
   try {
-    const w     = await fetchWeather();
-    const month = new Date().getMonth() + 1;
-    const hour  = new Date().getHours();
+    const { hourly, index, currentTime } = await fetchNairobiHourly();
+    const features = modelFeatures(hourly, index, currentTime);
+    const zones = ZONES.map(z => ({ ...z, ...features }));
 
-    const zones = ZONES.map(z => ({
-      ...z,
-      precipitation_mm: w.current_mm_per_hour,
-      rain_mm:          w.current_mm_per_hour,
-      rain_3h_mm:       w.rolling.rain_3h_mm,
-      rain_6h_mm:       w.rolling.rain_6h_mm,
-      rain_24h_mm:      w.rolling.rain_24h_mm,
-      rain_48h_mm:      w.rolling.rain_24h_mm,
-      humidity:         w.humidity_pct,
-      wind_speed:       w.wind_kmh,
-      temperature:      w.temperature_c,
-      cloud_cover:      w.cloud_cover,
-      month,
-      hour,
-      is_rainy_season:  [3, 4, 5, 10, 11, 12].includes(month) ? 1 : 0,
-      is_afternoon:     (hour >= 14 && hour <= 17) ? 1 : 0,
-    }));
-
-    const mlRes = await axios.post(`${ML_URL}/predict`, { zones });
+    const mlRes = await axios.post(`${ML_URL}/predict`, { zones }, { timeout: 15000 });
     res.json(mlRes.data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const status = err.response?.status === 503 ? 503 : 500;
+    res.status(status).json({ error: err.response?.data?.error || err.message });
   }
 });
 
