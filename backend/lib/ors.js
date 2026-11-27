@@ -40,39 +40,86 @@ function toRoutingError(err) {
   return new RoutingError(502, 'Route planning is unavailable right now. Try again in a moment.');
 }
 
-async function findPlace(text) {
-  const cacheKey = text.trim().toLowerCase();
-  const cached = placeCache.get(cacheKey);
-  if (cached && Date.now() - cached.at < PLACE_CACHE_MS) return cached.place;
+const AREA_LAYERS = ['neighbourhood', 'borough', 'locality', 'localadmin', 'county', 'region'];
+const SUGGESTION_COUNT = 6;
+const MAX_VENUES = 4;
 
-  let data;
+function searchParams(text, size) {
+  return {
+    text,
+    size,
+    'boundary.country': 'KE',
+    'focus.point.lat': NAIROBI.lat,
+    'focus.point.lon': NAIROBI.lon,
+    'boundary.circle.lat': NAIROBI.lat,
+    'boundary.circle.lon': NAIROBI.lon,
+    'boundary.circle.radius': SEARCH_RADIUS_KM,
+  };
+}
+
+// "JKIA Health Centre, Nairobi, NA, Kenya" -> "JKIA Health Centre, Nairobi" (NA is Nairobi's region code).
+function cleanLabel(label) {
+  const parts = String(label).split(',').map(p => p.split(';')[0].trim()).filter(p => p && p !== 'Kenya').map(p => (p === 'NA' ? 'Nairobi' : p));
+  return parts.filter((p, i) => p !== parts[i - 1]).join(', ');
+}
+
+function toPlace(feature) {
+  const [lon, lat] = feature?.geometry?.coordinates ?? [];
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const layer = feature.properties?.layer;
+  const kind = AREA_LAYERS.includes(layer) ? 'area' : layer === 'street' ? 'street' : layer === 'address' ? 'address' : 'place';
+  return { label: cleanLabel(feature.properties?.label || feature.properties?.name || ''), lat, lon, kind };
+}
+
+function cached(key) {
+  const hit = placeCache.get(key);
+  return hit && Date.now() - hit.at < PLACE_CACHE_MS ? hit.value : undefined;
+}
+
+function remember(key, value) {
+  placeCache.set(key, { at: Date.now(), value });
+  if (placeCache.size > PLACE_CACHE_SIZE) placeCache.delete(placeCache.keys().next().value);
+  return value;
+}
+
+async function pelias(path, params) {
   try {
-    ({ data } = await client().get('/pelias/v1/search', {
-      params: {
-        text,
-        size: 1,
-        'boundary.country': 'KE',
-        'focus.point.lat': NAIROBI.lat,
-        'focus.point.lon': NAIROBI.lon,
-        'boundary.circle.lat': NAIROBI.lat,
-        'boundary.circle.lon': NAIROBI.lon,
-        'boundary.circle.radius': SEARCH_RADIUS_KM,
-      },
-    }));
+    const { data } = await client().get(path, { params });
+    return (data?.features ?? []).map(toPlace).filter(Boolean);
   } catch (err) {
     throw toRoutingError(err);
   }
+}
 
-  const feature = data?.features?.[0];
-  const [lon, lat] = feature?.geometry?.coordinates ?? [];
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    throw new RoutingError(404, `Couldn't find "${text}" in the Nairobi area.`);
-  }
+// Best single match for typed text that wasn't picked from the suggestions.
+async function findPlace(text) {
+  const key = `find:${text.trim().toLowerCase()}`;
+  const hit = cached(key);
+  if (hit) return hit;
 
-  const place = { label: feature.properties?.label || feature.properties?.name || text, lat, lon };
-  placeCache.set(cacheKey, { at: Date.now(), place });
-  if (placeCache.size > PLACE_CACHE_SIZE) placeCache.delete(placeCache.keys().next().value);
-  return place;
+  const [place] = await pelias('/pelias/v1/search', searchParams(text, 1));
+  if (!place) throw new RoutingError(404, `Couldn't find "${text}" in the Nairobi area.`);
+  return remember(key, place);
+}
+
+// Suggestions while typing. Autocomplete finds venues by partial name ("JKIA" -> the
+// airport), search finds areas and streets ("Upper Hill", "Buruburu Road"); both are
+// merged, areas first, without duplicates.
+async function suggestPlaces(text) {
+  const key = `suggest:${text.trim().toLowerCase()}`;
+  const hit = cached(key);
+  if (hit) return hit;
+
+  const [completions, matches] = await Promise.all([
+    pelias('/pelias/v1/autocomplete', searchParams(text, SUGGESTION_COUNT)),
+    pelias('/pelias/v1/search', searchParams(text, SUGGESTION_COUNT)),
+  ]);
+  const seen = new Set();
+  const unique = [...completions, ...matches].filter(p => !seen.has(p.label) && seen.add(p.label));
+  const ofKind = kind => unique.filter(p => p.kind === kind);
+  const merged = [...ofKind('area'), ...ofKind('place').slice(0, MAX_VENUES), ...ofKind('street'), ...ofKind('address'), ...ofKind('place').slice(MAX_VENUES)]
+    .slice(0, SUGGESTION_COUNT);
+  return remember(key, merged);
 }
 
 async function findRoute(from, to, mode, avoidPolygons) {
@@ -109,4 +156,4 @@ async function findRoute(from, to, mode, avoidPolygons) {
   };
 }
 
-module.exports = { PROFILES, RoutingError, findPlace, findRoute };
+module.exports = { PROFILES, RoutingError, findPlace, findRoute, suggestPlaces };

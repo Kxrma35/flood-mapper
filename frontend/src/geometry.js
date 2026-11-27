@@ -64,3 +64,12 @@ export function lineCrossesZone(line, geometry) {
 export function zoneRings(geometry) {
   return outerRings(geometry);
 }
+
+// Rough centre of a zone (the average of its outer ring's corners), as [lng, lat].
+export function zoneCenter(geometry) {
+  const ring = outerRings(geometry)[0] ?? [];
+  const corners = ring.length > 1 ? ring.slice(0, -1) : ring;
+  if (!corners.length) return null;
+  const sum = corners.reduce(([x, y], [px, py]) => [x + px, y + py], [0, 0]);
+  return [sum[0] / corners.length, sum[1] / corners.length];
+}

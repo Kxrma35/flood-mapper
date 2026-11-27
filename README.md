@@ -30,7 +30,7 @@ FloodSafe addresses this with four connected features:
 - **Live flood risk map.** Known flood-prone zones in Nairobi are plotted on an interactive map, color-coded by risk level (low, medium, high). Zones are recolored in real time based on current rainfall against each zone's known flood threshold.
 - **Machine learning risk prediction.** A trained classification model takes live weather data (rainfall, humidity, wind, time of year) for each zone and predicts the probability of flooding, rather than relying on a fixed threshold alone.
 - **AI flood assistant.** A conversational interface lets a resident ask plain-language questions ("Is it safe to drive to JKIA now?") and receive a concise, practical answer grounded in live weather data and known flood-prone areas.
-- **Flood-aware route check.** Type a start (or use your location) and a destination to get a real road route from OpenRouteService, by car or on foot, with turn-by-turn directions. FloodSafe checks which flood zones the route passes through, and if any of them is at flood risk right now it also finds a safer route that avoids them and shows both.
+- **Flood-aware route check.** Pick a start (or use your location) and a destination from place suggestions as you type, and get a real road route from OpenRouteService, by car or on foot, with turn-by-turn directions. FloodSafe checks which flood zones the route passes through, and if any of them is at flood risk right now it also finds a safer route that avoids them and shows both.
 
 All four features run live against real weather data from the Open-Meteo API, with no manual data entry required by the user.
 
@@ -58,6 +58,7 @@ The system has four independent parts that communicate over HTTP:
                          │   /api/weather  ─────────┼──► Open-Meteo API
                          │   /api/ask      ─────────┼──► OpenAI API
                          │   /api/route    ─────────┼──► OpenRouteService
+                         │   /api/places   ─────────┼──► OpenRouteService
                          │   /api/predict  ─────────┤
                          └────────────┬─────────────┘
                                       │ HTTP (axios)
@@ -92,6 +93,7 @@ flood-mapper/
 │   │   ├── components/
 │   │   │   ├── MapView.jsx        Leaflet map, flood zone rendering
 │   │   │   ├── RoutePanel.jsx     Route check: inputs, route options, warnings, directions
+│   │   │   ├── PlaceInput.jsx     Place box with suggestions as you type
 │   │   │   ├── AIChatPanel.jsx    AI assistant chat interface
 │   │   │   └── RainIndicator.jsx  Live rainfall widget + forecast
 │   │   └── main.jsx
@@ -105,6 +107,7 @@ flood-mapper/
 │   │   ├── weather.js          Fetches and processes Open-Meteo data
 │   │   ├── ask.js              Forwards questions to OpenAI with live conditions
 │   │   ├── route.js            Validates route requests and calls OpenRouteService
+│   │   ├── places.js           Place suggestions for the route boxes
 │   │   └── predict.js          Builds zone+weather payload, calls ML service
 │   ├── lib/
 │   │   ├── open-meteo.js       Hourly Nairobi weather, matched to Nairobi time
@@ -223,7 +226,7 @@ FRONTEND_URL=http://localhost:5173
 PORT=3001
 ```
 
-`ORS_API_KEY` turns on the route check. Get a free key by signing up at https://openrouteservice.org. It is sent to OpenRouteService in a request header from the backend only, never to the browser. Without it the route check says route planning is not set up, and everything else works.
+`ORS_API_KEY` turns on the route check. Get a free key by signing up at https://openrouteservice.org. The backend calls `api.heigit.org`, which replaced `api.openrouteservice.org` when that was switched off on 2026-11-24; existing keys work on both. It is sent to OpenRouteService in a request header from the backend only, never to the browser. Without it the route check says route planning is not set up, and everything else works.
 
 ### `frontend/.env`
 
@@ -366,7 +369,7 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 - **Rule-based labels.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, or 50mm in 24 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect. Real Nairobi flood records would make the probabilities mean something more.
 - **One location, so no per-zone prediction.** All training rows come from one point (-1.286, 36.817), so latitude and longitude have no effect and every zone gets the same probability. The map keeps each zone's historical risk colour and uses the model for the live "active" highlight. Per-zone predictions need per-zone weather and training data from more than one point.
 - **Sample zone data.** Until a real dataset is added, the map uses the built-in zones in `App.jsx` and the AI chat uses the same zones. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and both label them as sample data. To use real data, put it at `backend/data/your-flood-data.csv` (columns `area_name`, `latitude`, `longitude`, `flood_frequency` or `flood_score`, `rain_threshold_mm`, `notes`). The AI chat reads it on startup, and `node backend/convert-csv.js` generates the map's `frontend/public/flood-zones.geojson` from it. Both read it through `backend/lib/dataset.js`, so they agree: a row with no recognisable level is shown as unknown, a missing threshold is shown as not recorded (never guessed), and rows without valid coordinates are left off the map.
-- **Routes are OpenStreetMap-based, without live traffic.** Travel times are estimates from road speeds, not live conditions, unlike Uber or Google Maps. A typed place name uses the best match in the Nairobi area (shown in the result so you can check it). OpenRouteService's free plan has daily quotas, and `/api/route` allows 20 checks per minute per IP.
+- **Routes are OpenStreetMap-based, without live traffic.** Travel times are estimates from road speeds, not live conditions, unlike Uber or Google Maps. Pick places from the suggestions: typed text that isn't picked falls back to the single best match, which for names like "JKIA" or "Buruburu" is often the wrong place (the result says so). Place points come from OpenStreetMap and can be a little off (the airport's point is at the edge of the airport, not the terminal). Each suggestion lookup uses two OpenRouteService geocoding calls; results are cached for 24 hours and `/api/places` allows 60 lookups per minute per IP. OpenRouteService's free plan has daily quotas, and `/api/route` allows 20 checks per minute per IP.
 - **The safer route is only as good as the zone data.** It avoids zones marked at risk right now (the model rates them HIGH, or rain is above their threshold), which until a real dataset is added are the sample zones. A zone containing your start or destination can't be avoided, so the app warns about it instead.
 - **Limited abuse protection.** `/api/ask` allows 10 questions per minute per IP address, and the backend shares one Open-Meteo response across all routes for 5 minutes. There is no authentication. People behind one shared IP (common on mobile networks) share the chat limit, and a determined client with many IPs can still drive OpenAI costs, so watch usage before a public launch. The limit counters and the weather cache live in memory in each backend process; if you run several instances, each keeps its own, and a shared store such as Redis would be needed to enforce one limit across them.
 

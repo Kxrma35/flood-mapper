@@ -2,9 +2,14 @@
 // Route check: real road routes from OpenRouteService, checked against the flood zones.
 
 import { useState } from 'react';
+import PlaceInput from './PlaceInput';
 import { planRoute, formatDistance, formatDuration } from '../routePlanner';
+import { zoneCenter } from '../geometry';
 
-const QUICK_CHECKS = ['Westlands', 'Eastlands', 'Kibera', 'Buruburu'];
+// Quick checks start and end at the map's own zones, so they never depend on place search.
+const QUICK_FROM = ['Westlands', 'Eastlands', 'Kibera', 'Mathare Valley'];
+const QUICK_TO = 'CBD';
+const EMPTY = { text: '', place: null };
 const RISK_COLORS = { high: '#E24B4A', medium: '#EF9F27', low: '#639922' };
 
 function names(zones) {
@@ -14,21 +19,29 @@ function names(zones) {
 const isAre = zones => (zones.length > 1 ? 'are' : 'is');
 
 export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPlan, selected, onSelect, onAskAI }) {
-  const [fromText, setFromText] = useState('Westlands');
-  const [toText, setToText] = useState('CBD');
-  const [fromPoint, setFromPoint] = useState(null);
+  const [from, setFrom] = useState(EMPTY);
+  const [to, setTo] = useState(EMPTY);
+  const [typed, setTyped] = useState({ from: false, to: false });
   const [mode, setMode] = useState('drive');
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState(null);
   const [showSteps, setShowSteps] = useState(false);
 
-  async function check({ from = fromPoint ?? fromText, to = toText, avoidHighRisk = false } = {}) {
+  // Each end is a picked place ({ label, lat, lon }) or, failing that, the typed text.
+  async function check({ start = from, end = to, avoidHighRisk = false } = {}) {
     if (!zones) return;
+    const origin = start.place ?? start.text.trim();
+    const destination = end.place ?? end.text.trim();
+    if (!origin || !destination) {
+      setError(!origin ? 'Choose a starting point.' : 'Choose a destination.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const result = await planRoute({ from, to, mode, zones, isAtRisk, avoidHighRisk });
+      const result = await planRoute({ from: origin, to: destination, mode, zones, isAtRisk, avoidHighRisk });
+      setTyped({ from: !start.place, to: !end.place });
       onPlan(result);
       onSelect(result.safer ? 'safer' : 'fastest');
       setShowSteps(false);
@@ -49,8 +62,7 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
     setError(null);
     navigator.geolocation.getCurrentPosition(
       pos => {
-        setFromPoint({ lat: pos.coords.latitude, lon: pos.coords.longitude, label: 'My location' });
-        setFromText('My location');
+        setFrom({ text: 'My location', place: { lat: pos.coords.latitude, lon: pos.coords.longitude, label: 'My location' } });
         setLocating(false);
       },
       () => {
@@ -60,6 +72,14 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }
+
+  const zonePlace = name => {
+    const zone = zones?.find(z => z.properties.name === name);
+    const center = zone && zoneCenter(zone.geometry);
+    return center ? { label: name, lat: center[1], lon: center[0] } : null;
+  };
+  const quickTo = zonePlace(QUICK_TO);
+  const quickFrom = quickTo ? QUICK_FROM.map(zonePlace).filter(Boolean) : [];
 
   const route = plan && (selected === 'safer' && plan.safer ? plan.safer : plan.fastest);
   const isEndpoint = z => plan.startZones.includes(z) || plan.endZones.includes(z);
@@ -72,21 +92,15 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
     <>
       <div style={st.sectionLabel}>Check Route Safety</div>
 
-      <div style={st.inputBox}>
-        <i className="ti ti-map-pin" style={{ fontSize: 15, color: '#1D9E75', flexShrink: 0 }} aria-hidden="true" />
-        <input value={fromText} aria-label="Starting point" placeholder="From (e.g. Westlands)" style={st.textInput}
-          onChange={e => { setFromText(e.target.value); setFromPoint(null); }} />
+      <PlaceInput value={from} onChange={setFrom} onSubmit={() => check()} label="Starting point"
+        placeholder="From (e.g. Westlands)" icon="ti-map-pin" iconColor="#1D9E75">
         <button onClick={useMyLocation} disabled={locating} title="Use my location" aria-label="Use my location" style={st.iconBtn}>
           <i className={`ti ${locating ? 'ti-loader-2' : 'ti-current-location'}`} style={{ fontSize: 15 }} aria-hidden="true" />
         </button>
-      </div>
+      </PlaceInput>
 
-      <div style={st.inputBox}>
-        <i className="ti ti-flag" style={{ fontSize: 15, color: '#EF9F27', flexShrink: 0 }} aria-hidden="true" />
-        <input value={toText} aria-label="Destination" placeholder="To (e.g. JKIA)" style={st.textInput}
-          onChange={e => setToText(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') check(); }} />
-      </div>
+      <PlaceInput value={to} onChange={setTo} onSubmit={() => check()} label="Destination"
+        placeholder="To (e.g. JKIA)" icon="ti-flag" iconColor="#EF9F27" />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }} role="radiogroup" aria-label="Travel mode">
         {[['drive', 'ti-car', 'Drive'], ['walk', 'ti-walk', 'Walk']].map(([id, icon, label]) => (
@@ -109,6 +123,12 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
           <div style={{ fontSize: 11, color: '#888', marginBottom: 8, lineHeight: 1.5 }}>
             <div><span style={{ color: '#1D9E75' }}>From</span> {plan.from.label}</div>
             <div><span style={{ color: '#EF9F27' }}>To</span> {plan.to.label}</div>
+            {(typed.from || typed.to) && (
+              <div style={{ color: '#666', marginTop: 2 }}>
+                Matched your typed {typed.from && typed.to ? 'places' : typed.from ? 'starting point' : 'destination'} to the closest name found.
+                If that is the wrong place, pick it from the suggestions instead.
+              </div>
+            )}
           </div>
 
           {[['fastest', plan.fastest, 'Fastest route'], ['safer', plan.safer, 'Safer route']]
@@ -152,7 +172,7 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
           )}
 
           {!plan.avoidHighRisk && !plan.safer && highOnRoute.length > 0 && (
-            <button onClick={() => check({ from: plan.from, to: plan.to, avoidHighRisk: true })} disabled={loading} style={st.secondaryBtn}>
+            <button onClick={() => check({ start: { text: plan.from.label, place: plan.from }, end: { text: plan.to.label, place: plan.to }, avoidHighRisk: true })} disabled={loading} style={st.secondaryBtn}>
               <i className="ti ti-route" style={{ fontSize: 13 }} aria-hidden="true" /> Find a route around high-risk zones
             </button>
           )}
@@ -201,10 +221,16 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
 
       <div style={{ ...st.sectionLabel, marginTop: 16 }}>Quick Checks</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
-        {QUICK_CHECKS.map(q => (
-          <button key={q} disabled={loading} style={st.quickBtn}
-            onClick={() => { setFromText(q); setFromPoint(null); setToText('CBD'); check({ from: q, to: 'CBD' }); }}>
-            <i className="ti ti-arrow-right" style={{ fontSize: 11 }} aria-hidden="true" /> {q} to CBD
+        {quickFrom.map(place => (
+          <button key={place.label} disabled={loading} style={st.quickBtn}
+            onClick={() => {
+              const start = { text: place.label, place };
+              const end = { text: quickTo.label, place: quickTo };
+              setFrom(start);
+              setTo(end);
+              check({ start, end });
+            }}>
+            <i className="ti ti-arrow-right" style={{ fontSize: 11 }} aria-hidden="true" /> {place.label} to {quickTo.label}
           </button>
         ))}
       </div>
@@ -214,8 +240,6 @@ export default function RoutePanel({ zones, isAtRisk, zonesAreSample, plan, onPl
 
 const st = {
   sectionLabel: { fontSize: 10, color: '#555', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 },
-  inputBox: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 },
-  textInput: { background: 'none', border: 'none', outline: 'none', color: '#e8e8e8', fontSize: 13, width: '100%', fontFamily: 'inherit' },
   iconBtn: { background: 'none', border: 'none', color: '#1D9E75', cursor: 'pointer', padding: 0, display: 'flex' },
   modeBtn: { flex: 1, padding: '6px 8px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#555', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 },
   modeBtnActive: { background: '#222', color: '#e8e8e8', border: '1px solid #3a3a3a' },
