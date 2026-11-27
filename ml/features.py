@@ -44,16 +44,13 @@ def prepare(df):
     return df
 
 
-def rule_label(df):
-    """The training label: a rainfall rule, not recorded floods. check_records.py tests it.
+# The training label's rainfall rule, in mm over each window: a flood hour is one where any
+# total is above its threshold. Short downpours, or rain building up over three days (the
+# April-May 2024 and 6-7 March 2026 floods came from days of moderate rain). The 72-hour
+# threshold was chosen with threshold_tradeoff.py against the recorded floods.
+RULE = {"precipitation_mm": 10, "rain_3h_mm": 25, "rain_24h_mm": 50, "rain_72h_mm": 55}
 
-    Short downpours, or rain building up over three days: the April-May 2024 floods came
-    from days of moderate rain that never passed the short-window limits. 60 mm in 72 hours
-    is close to the 99th percentile of 72-hour totals in zone_history (2018-2024).
-    """
-    return (
-        (df["precipitation_mm"] > 10) |
-        (df["rain_3h_mm"]  > 25)      |
-        (df["rain_24h_mm"] > 50)      |
-        (df["rain_72h_mm"] > 60)
-    ).astype(int)
+
+def rule_label(df):
+    """The training label: a rainfall rule, not recorded floods. check_records.py tests it."""
+    return pd.concat([df[column] > limit for column, limit in RULE.items()], axis=1).any(axis=1).astype(int)
