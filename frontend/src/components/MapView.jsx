@@ -4,6 +4,7 @@
 
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import { AT_RISK_COLOR, zoneColor } from '../zoneStyle';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -11,8 +12,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
-
-const RISK_COLORS = { high: '#E24B4A', medium: '#EF9F27', low: '#639922' };
 
 const CARTO_KEY = import.meta.env.VITE_CARTO_KEY;
 const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -87,10 +86,10 @@ export default function MapView({ floodZones, onZoneClick, isAtRisk, routePlan, 
 
     floodZones.features.forEach(feature => {
       const { risk, name } = feature.properties;
-      const color = RISK_COLORS[risk] || '#888';
 
-      // Colour is the zone's historical risk; the highlight is whether it is at risk right now.
+      // Colour is the zone's level (or "documented flooding"); red and bold when at risk right now.
       const isActivelyFlooding = isAtRisk(feature.properties);
+      const color = isActivelyFlooding ? AT_RISK_COLOR : zoneColor(risk);
       const fillOpacity = isActivelyFlooding ? 0.6 : 0.35;
 
       const poly = L.geoJSON(feature, {

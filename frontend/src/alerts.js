@@ -17,7 +17,8 @@ function listNames(items) {
 // Builds the ticker from each zone's own report (model estimate, local rain, local forecast)
 // and, for context, central Nairobi's weather. Zone checks still run when the central reading
 // is missing. `reports` is null while the zone reports are still loading.
-export function buildAlerts({ weather, weatherError, reports, zones, zonesAreSample }) {
+export function buildAlerts({ weather, weatherError, reports, zones, zonesError }) {
+  if (zonesError) return unknown("Flood areas couldn't be loaded, so flood risk can't be checked right now.");
   if (!zones || reports == null) return unknown('Checking live weather...');
 
   const central = !weatherError && weather?.current_mm_per_hour != null ? weather : null;
@@ -26,9 +27,14 @@ export function buildAlerts({ weather, weatherError, reports, zones, zonesAreSam
     if (!weather && !weatherError) return unknown('Checking live weather...');
     return unknown('Live weather is unavailable, so flood risk cannot be checked right now.');
   }
+  if (zones.length && zones.every(z => !isZoneRiskKnown(z, reports))) {
+    return unknown(haveZoneData
+      ? "The flood model is unavailable and no area has a recorded rain threshold, so flood risk can't be checked right now."
+      : "Live weather for the flood areas is unavailable, so flood risk can't be checked right now.");
+  }
 
   const messages = [];
-  const threshold = zonesAreSample ? 'sample flood threshold' : 'flood threshold';
+  const threshold = 'flood threshold';
   const time = central?.forecast?.[0]?.time ?? reports.find(r => r.time)?.time;
   const asOf = time ? ` as of ${clockTime(time)}` : '';
   const reportOf = zone => reports.find(r => r.name === zone.name);
@@ -90,10 +96,13 @@ export function buildAlerts({ weather, weatherError, reports, zones, zonesAreSam
 
   const unknownZones = zones.filter(z => !isZoneRiskKnown(z, reports));
   if (unknownZones.length) {
-    messages.push({ level: 'info', text: `Flood risk can't be checked for ${listNames(unknownZones)} right now.` });
+    const which = unknownZones.length > 5 ? `${unknownZones.length} areas` : listNames(unknownZones);
+    messages.push({ level: 'info', text: `Flood risk can't be checked for ${which} right now.` });
   }
   const modelOnly = zones.filter(z => z.rain_threshold == null && isZoneRiskKnown(z, reports));
-  if (modelOnly.length) {
+  if (modelOnly.length && zones.every(z => z.rain_threshold == null)) {
+    messages.push({ level: 'info', text: 'No area has a recorded flood threshold, so alerts come from the model estimate only.' });
+  } else if (modelOnly.length) {
     messages.push({ level: 'info', text: `No flood threshold is recorded for ${listNames(modelOnly)}, so ${modelOnly.length > 1 ? 'they are' : 'it is'} covered only by the model estimate.` });
   }
 

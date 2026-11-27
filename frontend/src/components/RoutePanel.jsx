@@ -5,12 +5,13 @@ import { useRef, useState } from 'react';
 import PlaceInput from './PlaceInput';
 import { planRoute, formatDistance, formatDuration } from '../routePlanner';
 import { zoneCenter } from '../geometry';
+import { LEVELS, zoneColor } from '../zoneStyle';
 
-// Quick checks start and end at the map's own zones, so they never depend on place search.
-const QUICK_FROM = ['Westlands', 'Eastlands', 'Kibera', 'Mathare Valley'];
+// Quick checks start and end at the map's own zones, so they never depend on place search;
+// any that aren't on the map are left out.
+const QUICK_FROM = ['Kibera', 'Mathare', 'Korogocho', 'Mukuru Kwa Njenga'];
 const QUICK_TO = 'CBD';
 const EMPTY = { text: '', place: null };
-const RISK_COLORS = { high: '#E24B4A', medium: '#EF9F27', low: '#639922' };
 
 function names(zones) {
   const list = zones.map(z => z.properties.name);
@@ -18,7 +19,7 @@ function names(zones) {
 }
 const isAre = zones => (zones.length > 1 ? 'are' : 'is');
 
-export default function RoutePanel({ zones, isAtRisk, isRiskKnown, zonesAreSample, plan, onPlan, selected, onSelect, onAskAI }) {
+export default function RoutePanel({ zones, isAtRisk, isRiskKnown, plan, onPlan, selected, onSelect, onAskAI }) {
   const [from, setFrom] = useState(EMPTY);
   const [to, setTo] = useState(EMPTY);
   const [typed, setTyped] = useState({ from: false, to: false });
@@ -200,7 +201,6 @@ export default function RoutePanel({ zones, isAtRisk, isRiskKnown, zonesAreSampl
               {route.zones.length
                 ? `None of the flood zones on this route (${names(route.zones)}) is at risk right now.`
                 : 'This route does not pass through any mapped flood zone.'}
-              {zonesAreSample && ' Zone data is sample data.'}
             </div>
           )}
 
@@ -213,10 +213,10 @@ export default function RoutePanel({ zones, isAtRisk, isRiskKnown, zonesAreSampl
           {route.zones.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, margin: '8px 0' }}>
               {route.zones.map(z => {
-                const color = RISK_COLORS[z.properties.risk] ?? '#888';
+                const level = LEVELS.includes(z.properties.risk) ? ` · ${z.properties.risk.toUpperCase()}` : '';
                 return (
-                  <span key={z.properties.name} style={st.chip(color)}>
-                    {z.properties.name} · {String(z.properties.risk).toUpperCase()}{isAtRisk(z.properties) ? ' · AT RISK NOW' : ''}
+                  <span key={z.properties.name} style={st.chip(zoneColor(z.properties.risk))}>
+                    {z.properties.name}{level}{isAtRisk(z.properties) ? ' · AT RISK NOW' : ''}
                   </span>
                 );
               })}
