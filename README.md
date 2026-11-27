@@ -448,7 +448,7 @@ Most hosting providers will run this command for you if you set it as the start 
 
 **Recommended options:**
 
-- **Render** (Web Service): root directory `backend/`, build command `npm install`, start command `node index.js` (or `npm start`).
+- **Render** (Web Service): root directory `backend/`, build command `npm ci --omit=dev` (skips development-only tools such as nodemon), start command `node index.js` (or `npm start`).
 - **Railway**: similar, auto-detects Node.js.
 - **Fly.io / Heroku**: also suitable.
 
