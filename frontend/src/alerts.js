@@ -1,3 +1,5 @@
+import { isZoneRiskKnown, zoneRainNow } from './risk';
+
 const DISCLAIMER = {
   level: 'info',
   text: 'FloodSafe estimates from Open-Meteo weather data, not official warnings. Follow the Kenya Meteorological Department and Nairobi County for official alerts.',
@@ -5,87 +7,105 @@ const DISCLAIMER = {
 
 const mmPerHour = mm => `${mm.toFixed(1)} mm/hr`;
 const clockTime = isoTime => isoTime.slice(11, 16);
+const unknown = text => ({ level: 'unknown', messages: [{ level: 'unknown', text }, DISCLAIMER] });
 
-function listNames(zones) {
-  const names = zones.map(z => z.name);
+function listNames(items) {
+  const names = items.map(item => item.name);
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
 }
 
-export function buildAlerts({ weather, weatherError, predictions, zones, zonesAreSample }) {
-  if (weatherError) {
-    return {
-      level: 'unknown',
-      messages: [{ level: 'unknown', text: 'Live weather is unavailable, so flood risk cannot be checked right now.' }, DISCLAIMER],
-    };
-  }
-  if (!weather || !zones) {
-    return { level: 'unknown', messages: [{ level: 'unknown', text: 'Checking live weather...' }, DISCLAIMER] };
-  }
-  if (weather.current_mm_per_hour == null) {
-    return {
-      level: 'unknown',
-      messages: [{ level: 'unknown', text: 'The latest rainfall reading is missing, so flood risk cannot be checked right now.' }, DISCLAIMER],
-    };
+// Builds the ticker from each zone's own report (model estimate, local rain, local forecast)
+// and, for context, central Nairobi's weather. Zone checks still run when the central reading
+// is missing. `reports` is null while the zone reports are still loading.
+export function buildAlerts({ weather, weatherError, reports, zones, zonesAreSample }) {
+  if (!zones || reports == null) return unknown('Checking live weather...');
+
+  const central = !weatherError && weather?.current_mm_per_hour != null ? weather : null;
+  const haveZoneData = reports.some(r => r.rain_mm_per_hr != null || r.flood_probability != null);
+  if (!central && !haveZoneData) {
+    if (!weather && !weatherError) return unknown('Checking live weather...');
+    return unknown('Live weather is unavailable, so flood risk cannot be checked right now.');
   }
 
   const messages = [];
-  const rain = weather.current_mm_per_hour;
-  const forecast = weather.forecast ?? [];
-  const asOf = forecast[0] ? ` as of ${clockTime(forecast[0].time)}` : '';
   const threshold = zonesAreSample ? 'sample flood threshold' : 'flood threshold';
+  const time = central?.forecast?.[0]?.time ?? reports.find(r => r.time)?.time;
+  const asOf = time ? ` as of ${clockTime(time)}` : '';
+  const reportOf = zone => reports.find(r => r.name === zone.name);
+  const localRain = zone => zoneRainNow(zone, reports);
 
-  const top = predictions.reduce((max, p) => (!max || p.flood_probability > max.flood_probability ? p : max), null);
-  if (top && top.risk_level !== 'LOW') {
-    const high = top.risk_level === 'HIGH';
-    messages.push({
-      level: high ? 'high' : 'medium',
-      text: `${high ? 'High' : 'Elevated'} flood risk: the model puts it at ${Math.round(top.flood_probability * 100)}% for central Nairobi.`,
+  // The model's estimate for each zone, from that zone's own weather.
+  const rated = level => reports
+    .filter(r => r.risk_level === level && r.flood_probability != null)
+    .sort((a, b) => b.flood_probability - a.flood_probability)
+    .map(r => ({ name: `${r.name} (${Math.round(r.flood_probability * 100)}%)` }));
+  const high = rated('HIGH');
+  const medium = rated('MEDIUM');
+  if (high.length) messages.push({ level: 'high', text: `High flood risk${asOf}: the model rates ${listNames(high)} HIGH.` });
+  if (medium.length) messages.push({ level: 'medium', text: `Elevated flood risk${asOf}: the model rates ${listNames(medium)} MEDIUM.` });
+
+  // Each zone's own rain against its threshold.
+  const over = zones.filter(z => z.rain_threshold != null && localRain(z) != null && localRain(z) >= z.rain_threshold);
+  if (over.length) {
+    const withRain = over.map(z => ({ name: `${z.name} (${mmPerHour(localRain(z))})` }));
+    messages.push({ level: 'high', text: `Rain${asOf} is at or above the ${threshold} for ${listNames(withRain)}.` });
+  }
+
+  // Each zone's own forecast against its threshold.
+  const coming = zones.filter(z => {
+    const r = reportOf(z);
+    return z.rain_threshold != null && r?.forecast_peak_mm != null && r.forecast_peak_mm >= z.rain_threshold &&
+      !(localRain(z) != null && localRain(z) >= z.rain_threshold);
+  });
+  if (coming.length) {
+    const withForecast = coming.map(z => {
+      const r = reportOf(z);
+      return { name: `${z.name} (${mmPerHour(r.forecast_peak_mm)} around ${clockTime(r.forecast_peak_time)})` };
     });
+    messages.push({ level: 'medium', text: `Forecast: rain heavy enough to pass the ${threshold} is expected in ${listNames(withForecast)}.` });
   }
 
-  const overThreshold = zones.filter(z => z.rain_threshold != null && rain >= z.rain_threshold);
-  if (overThreshold.length) {
-    messages.push({ level: 'high', text: `Rain of ${mmPerHour(rain)}${asOf} is at or above the ${threshold} for ${listNames(overThreshold)}.` });
+  // Central Nairobi's general forecast, for context.
+  let centralGaps = false;
+  if (central) {
+    const upcoming = (central.forecast ?? []).slice(1);
+    centralGaps = upcoming.some(f => f.precipitation == null);
+    const peak = upcoming.reduce((max, f) => (f.precipitation != null && f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
+    if (peak) {
+      messages.push({ level: 'info', text: `Central Nairobi forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}${centralGaps ? ' in the hours available' : ''}.` });
+    } else if (upcoming.length && !centralGaps) {
+      messages.push({ level: 'info', text: `No rain forecast in central Nairobi for the next ${upcoming.length} hours.` });
+    }
+  } else {
+    messages.push({ level: 'info', text: "The central Nairobi reading is unavailable; zone checks use each zone's own weather." });
   }
-
-  const upcoming = forecast.slice(1);
-  const forecastGaps = upcoming.some(f => f.precipitation == null);
-  const peak = upcoming.reduce((max, f) => (f.precipitation != null && f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
-  if (peak) {
-    const comingOver = zones.filter(z => z.rain_threshold != null && peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
-    messages.push(comingOver.length
-      ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the ${threshold} for ${listNames(comingOver)}.` }
-      : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}${forecastGaps ? ' in the hours available' : ''}.` });
-  } else if (upcoming.length && !forecastGaps) {
-    messages.push({ level: 'info', text: `No rain forecast for the next ${upcoming.length} hours.` });
-  }
+  const forecastGaps = centralGaps || reports.some(r => r.forecast_complete === false);
   if (forecastGaps) {
-    messages.push({ level: 'info', text: 'Some forecast hours are missing, so later hours can\'t be fully checked.' });
+    messages.push({ level: 'info', text: "Some forecast hours are missing, so later hours can't be fully checked." });
   }
 
-  if (!predictions.length) {
+  if (!reports.some(r => r.flood_probability != null)) {
     messages.push({ level: 'info', text: 'Flood model unavailable, so alerts use rain thresholds only.' });
   }
 
-  const unassessed = zones.filter(z => z.rain_threshold == null);
-  if (unassessed.length) {
-    const subject = unassessed.length > 1 ? 'they are' : 'it is';
-    messages.push({
-      level: 'info',
-      text: predictions.length
-        ? `No flood threshold is recorded for ${listNames(unassessed)}, so ${subject} covered only by the model estimate.`
-        : `No flood threshold is recorded for ${listNames(unassessed)} and the model is unavailable, so ${subject} not being checked.`,
-    });
+  const unknownZones = zones.filter(z => !isZoneRiskKnown(z, reports));
+  if (unknownZones.length) {
+    messages.push({ level: 'info', text: `Flood risk can't be checked for ${listNames(unknownZones)} right now.` });
   }
-  const partial = forecastGaps || (unassessed.length > 0 && !predictions.length);
+  const modelOnly = zones.filter(z => z.rain_threshold == null && isZoneRiskKnown(z, reports));
+  if (modelOnly.length) {
+    messages.push({ level: 'info', text: `No flood threshold is recorded for ${listNames(modelOnly)}, so ${modelOnly.length > 1 ? 'they are' : 'it is'} covered only by the model estimate.` });
+  }
 
   // "partial": nothing alarming in the data we have, but some of it is missing, so no all-clear.
+  const partial = forecastGaps || unknownZones.length > 0;
   const level = messages.some(m => m.level === 'high') ? 'high'
     : messages.some(m => m.level === 'medium') ? 'medium'
     : partial ? 'partial'
     : 'none';
   if (level === 'none' || level === 'partial') {
-    messages.unshift({ level, text: `No flood alerts${level === 'partial' ? ' for what can be checked' : ''}${asOf}. Rain now: ${mmPerHour(rain)}.` });
+    const rainNow = central ? ` Rain now in central Nairobi: ${mmPerHour(central.current_mm_per_hour)}.` : '';
+    messages.unshift({ level, text: `No flood alerts${level === 'partial' ? ' for what can be checked' : ''}${asOf}.${rainNow}` });
   }
 
   return { level, messages: [...messages, DISCLAIMER] };

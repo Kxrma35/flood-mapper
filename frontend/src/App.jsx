@@ -7,7 +7,7 @@ import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import RoutePanel from './components/RoutePanel';
-import { isZoneAtRiskNow, isZoneRiskKnown } from './risk';
+import { isZoneAtRiskNow, isZoneRiskKnown, zoneRainNow } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
 import { formatReading } from './format';
@@ -68,11 +68,13 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('route'); // 'route' | 'chat'
 
   const { data: weather, error: weatherError } = useLiveData(`${API}/api/weather`, REFRESH_MS);
-  const { data: predictionData } = useLiveData(`${API}/api/predict`, REFRESH_MS);
-  const predictions = useMemo(
-    () => (Array.isArray(predictionData) ? predictionData.filter(p => p.flood_probability != null) : []),
-    [predictionData],
+  // One report per zone from its own weather; null until the first answer arrives.
+  const { data: predictionData, error: predictionError } = useLiveData(`${API}/api/predict`, REFRESH_MS);
+  const zoneReports = useMemo(
+    () => (Array.isArray(predictionData) ? predictionData : predictionError ? [] : null),
+    [predictionData, predictionError],
   );
+  const reports = useMemo(() => zoneReports ?? [], [zoneReports]);
 
   // Clock
   useEffect(() => {
@@ -105,20 +107,22 @@ export default function App() {
   }, []);
 
   const precipMm = weather?.current_mm_per_hour ?? null;
-  const isAtRisk = useCallback(zone => isZoneAtRiskNow(zone, predictions, precipMm), [predictions, precipMm]);
-  const isRiskKnown = useCallback(zone => isZoneRiskKnown(zone, predictions, precipMm), [predictions, precipMm]);
+  const isAtRisk = useCallback(zone => isZoneAtRiskNow(zone, reports), [reports]);
+  const isRiskKnown = useCallback(zone => isZoneRiskKnown(zone, reports), [reports]);
   const askAboutTrip = useCallback((origin, destination) => {
     setChatTrip({ origin, destination });
     setActiveTab('chat');
   }, []);
-  const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
-  const selectedOverThreshold = selectedZone && precipMm != null && selectedZone.rain_threshold != null
-    ? precipMm >= selectedZone.rain_threshold
+  const selectedReport = selectedZone && reports.find(r => r.name === selectedZone.name);
+  const selectedPrediction = selectedReport?.flood_probability != null ? selectedReport : null;
+  const selectedRain = selectedZone ? zoneRainNow(selectedZone, reports) : null;
+  const selectedOverThreshold = selectedZone && selectedRain != null && selectedZone.rain_threshold != null
+    ? selectedRain >= selectedZone.rain_threshold
     : null;
   const alerts = buildAlerts({
     weather,
     weatherError,
-    predictions,
+    reports: zoneReports,
     zones: floodZones ? floodZones.features.map(f => f.properties) : null,
     zonesAreSample,
   });
@@ -294,6 +298,10 @@ export default function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <i className="ti ti-droplet" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
                   <span>Flood threshold: <span style={{ color: '#e8e8e8' }}>{selectedZone.rain_threshold != null ? `${selectedZone.rain_threshold}mm/hr` : 'not recorded'}</span></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-cloud-rain" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
+                  <span>Rain here now: <span style={{ color: '#e8e8e8' }}>{selectedRain != null ? `${selectedRain.toFixed(1)}mm/hr` : 'unknown'}</span></span>
                 </div>
                 {selectedZone.residents > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

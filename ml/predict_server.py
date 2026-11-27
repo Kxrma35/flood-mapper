@@ -16,19 +16,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 try:
-    model    = joblib.load(os.path.join(HERE, "flood_model.pkl"))
-    scaler   = joblib.load(os.path.join(HERE, "scaler.pkl"))
-    FEATURES = joblib.load(os.path.join(HERE, "features.pkl"))
+    bundle   = joblib.load(os.path.join(HERE, "model.joblib"))
+    model    = bundle["model"]
+    scaler   = bundle["scaler"]
+    FEATURES = bundle["features"]
     MODEL_READY = True
 except FileNotFoundError:
     MODEL_READY = False
-    print("WARNING: No model files found. Run train_model.py first.")
+    print("WARNING: ml/model.joblib not found. Run ml/train_model.py first.")
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
     """
-    Expects {"zones": [{"name", "latitude", "longitude", <every name in features.pkl>}]}
+    Expects {"zones": [{"name", "latitude", "longitude", <every feature in the bundle>}]}
     """
     if not MODEL_READY:
         return jsonify({"error": "Model not loaded. Run ml/train_model.py first."}), 503

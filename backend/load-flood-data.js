@@ -1,19 +1,8 @@
 // Builds the AI chat's system prompt from backend/data/your-flood-data.csv when present,
 // otherwise from the same sample zones the map shows, labelled as sample data.
 
-const { DATASET_PATH, readDataset } = require('./lib/dataset');
-
-// Matches buildFallbackGeoJSON in frontend/src/App.jsx.
-const SAMPLE_AREAS = [
-  { name: 'Mathare Valley',    risk: 'high',   threshold: 10 },
-  { name: 'Kibera',            risk: 'high',   threshold: 10 },
-  { name: 'Mukuru kwa Njenga', risk: 'high',   threshold: 10 },
-  { name: 'Pangani',           risk: 'medium', threshold: 18 },
-  { name: 'Eastlands',         risk: 'medium', threshold: 15 },
-  { name: 'Upper Hill',        risk: 'low',    threshold: 30 },
-  { name: 'Westlands',         risk: 'low',    threshold: 25 },
-  { name: 'CBD',               risk: 'low',    threshold: 30 },
-];
+const { SAMPLE_ZONES, loadDatasetZones } = require('./lib/zones');
+const { DATASET_PATH } = require('./lib/dataset');
 
 // Dataset text is data, so it is kept to one line and can't close the <areas> block.
 const asDataText = text => String(text).replace(/[\r\n<>]+/g, ' ').trim();
@@ -24,20 +13,10 @@ function describeArea(a) {
   return `- ${asDataText(a.name)}: ${a.risk.toUpperCase()} risk, ${threshold}${notes}`;
 }
 
-function loadDatasetAreas() {
-  try {
-    const areas = readDataset();
-    if (areas) console.log(`AI chat: loaded ${areas.length} areas from ${DATASET_PATH}`);
-    return areas;
-  } catch (err) {
-    console.warn(`AI chat: could not read ${DATASET_PATH}, using sample areas:`, err.message);
-    return null;
-  }
-}
-
 function buildSystemPrompt() {
-  const datasetAreas = loadDatasetAreas();
-  const areaList = (datasetAreas ?? SAMPLE_AREAS).map(describeArea);
+  const datasetAreas = loadDatasetZones();
+  if (datasetAreas) console.log(`AI chat: loaded ${datasetAreas.length} areas from ${DATASET_PATH}`);
+  const areaList = (datasetAreas ?? SAMPLE_ZONES).map(describeArea);
   const sourceRule = datasetAreas
     ? 'The area list comes from the FloodSafe flood dataset.'
     : 'The area list is sample data with no verified source. If you rely on one of its levels or thresholds, say it is a rough sample figure.';
