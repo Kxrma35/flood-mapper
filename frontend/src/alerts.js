@@ -79,11 +79,13 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
   }
   const partial = forecastGaps || (unassessed.length > 0 && !predictions.length);
 
+  // "partial": nothing alarming in the data we have, but some of it is missing, so no all-clear.
   const level = messages.some(m => m.level === 'high') ? 'high'
     : messages.some(m => m.level === 'medium') ? 'medium'
+    : partial ? 'partial'
     : 'none';
-  if (level === 'none') {
-    messages.unshift({ level: 'none', text: `No flood alerts${partial ? ' for what can be checked' : ''}${asOf}. Rain now: ${mmPerHour(rain)}.` });
+  if (level === 'none' || level === 'partial') {
+    messages.unshift({ level, text: `No flood alerts${level === 'partial' ? ' for what can be checked' : ''}${asOf}. Rain now: ${mmPerHour(rain)}.` });
   }
 
   return { level, messages: [...messages, DISCLAIMER] };

@@ -14,6 +14,7 @@ const ALERT_STATUS = {
   high:    { label: 'HIGH RISK',     color: '#E24B4A', icon: 'ti-alert-triangle' },
   medium:  { label: 'ELEVATED RISK', color: '#EF9F27', icon: 'ti-alert-triangle' },
   none:    { label: 'NO ALERTS',     color: '#1D9E75', icon: 'ti-circle-check' },
+  partial: { label: 'PARTIAL CHECK', color: '#888',    icon: 'ti-alert-circle' },
   unknown: { label: 'NO DATA',       color: '#555',    icon: 'ti-cloud-off' },
   info:    { color: '#888', icon: 'ti-info-circle' },
 };
