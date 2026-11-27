@@ -1,41 +1,36 @@
 const express = require('express');
 const OpenAI  = require('openai');
+const { buildSystemPrompt } = require('../load-flood-data');
+const { currentConditions, describeConditions } = require('../lib/conditions');
 const router  = express.Router();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+const SYSTEM_PROMPT = buildSystemPrompt();
 
-const SYSTEM_PROMPT = `You are a flood risk assistant for Nairobi, Kenya.
-You help residents decide whether it is safe to travel during heavy rainfall.
-
-Known flood-prone areas:
-- Mathare Valley: HIGH risk above 10mm/hr
-- Mukuru kwa Njenga / Mukuru kwa Reuben: HIGH risk above 10mm/hr
-- Ngong River corridor: HIGH risk above 8mm/hr
-- Nairobi River banks (Ngara, Bondeni): HIGH risk above 8mm/hr
-- Eastleigh Sections 1–3: MEDIUM-HIGH risk above 15mm/hr
-- South B near Bellevue: MEDIUM risk above 20mm/hr
-- Westlands lower areas: LOW-MEDIUM risk above 25mm/hr
-- CBD main roads: LOW risk, surface water above 30mm/hr
-
-When answering, you will receive current precipitation in mm/hr plus origin/destination if provided.
-
-ALWAYS respond in this format:
-1. Risk level: LOW / MEDIUM / HIGH
-2. One sentence reason
-3. One practical suggestion
-
-Be concise. Write like you're texting a friend who needs to leave now.`;
+const MAX_QUESTION_CHARS = 500;
+const MAX_PLACE_CHARS = 100;
+const clean = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 
 router.post('/', async (req, res) => {
-  const { question, precipitation_mm, origin, destination } = req.body;
+  const question    = clean(req.body?.question, MAX_QUESTION_CHARS);
+  const origin      = clean(req.body?.origin, MAX_PLACE_CHARS);
+  const destination = clean(req.body?.destination, MAX_PLACE_CHARS);
 
   if (!question) return res.status(400).json({ error: 'question is required' });
+  if (!openai) return res.status(503).json({ error: 'The AI assistant is not set up on this server yet.' });
 
-  let userMessage = '';
-  if (precipitation_mm != null) userMessage += `Current rainfall: ${precipitation_mm}mm/hr\n`;
-  if (origin)                   userMessage += `From: ${origin}\n`;
-  if (destination)              userMessage += `To: ${destination}\n`;
-  userMessage += `\nQuestion: ${question}`;
+  let conditions;
+  try {
+    conditions = describeConditions(await currentConditions());
+  } catch (err) {
+    console.warn('Live conditions unavailable for chat:', err.message);
+    conditions = 'Live conditions: unavailable (weather data could not be loaded).';
+  }
+
+  const context = [conditions, origin && `From: ${origin}`, destination && `To: ${destination}`]
+    .filter(Boolean)
+    .join('\n');
+  const userMessage = `${context}\n\nQuestion: ${question}`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -50,7 +45,7 @@ router.post('/', async (req, res) => {
     res.json({ answer: response.choices[0].message.content });
   } catch (err) {
     console.error('OpenAI error:', err.message);
-    res.status(500).json({ error: 'AI request failed', details: err.message });
+    res.status(502).json({ error: 'The AI assistant could not answer right now. Try again in a moment.' });
   }
 });
 

@@ -1,5 +1,5 @@
 // AIChatPanel.jsx
-// AI chat interface. Sends questions to /api/ask with live rainfall context.
+// AI chat interface. Sends questions to /api/ask; the server adds the live conditions.
 // Suggestions are pre-loaded; user can also type free-form questions.
 
 import { useState, useRef, useEffect } from 'react';
@@ -15,7 +15,7 @@ const SUGGESTIONS = [
   'Should I avoid Kibera right now?',
 ];
 
-export default function AIChatPanel({ weatherMm, origin, destination }) {
+export default function AIChatPanel({ origin, destination }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,17 +32,12 @@ export default function AIChatPanel({ weatherMm, origin, destination }) {
     setInput('');
 
     try {
-      const { data } = await axios.post(`${API}/api/ask`, {
-        question,
-        precipitation_mm: weatherMm,
-        origin,
-        destination,
-      });
+      const { data } = await axios.post(`${API}/api/ask`, { question, origin, destination });
       setMessages(prev => [...prev, { role: 'ai', text: data.answer }]);
-    } catch {
+    } catch (err) {
       setMessages(prev => [...prev, {
         role: 'ai',
-        text: 'Could not reach the server. Check your connection and try again.',
+        text: err.response?.data?.error || 'Could not reach the server. Check your connection and try again.',
       }]);
     } finally {
       setLoading(false);
