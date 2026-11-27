@@ -25,3 +25,5 @@ dist-ssr
 
 .env
 .venv
+.vite
+__pycache__/
