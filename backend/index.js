@@ -7,9 +7,11 @@ const app = express();   // ← must come FIRST
 const weatherRoute = require('./routes/weather');
 const askRoute     = require('./routes/ask');
 const predictRoute = require('./routes/predict');
+const routeRoute   = require('./routes/route');
+const placesRoute  = require('./routes/places');
 
 // Behind a hosting proxy (Render, Railway), set TRUST_PROXY to the number of proxies
-// (usually 1) so the chat rate limit counts each visitor's own IP.
+// (usually 1) so the rate limits count each visitor's own IP.
 if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY));
 
 const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_URL].filter(Boolean);
@@ -18,7 +20,9 @@ app.use(express.json());
 
 app.use('/api/weather', weatherRoute);
 app.use('/api/ask',     askRoute);
-app.use('/api/predict', predictRoute);   // ← now safe
+app.use('/api/predict', predictRoute);
+app.use('/api/route',   routeRoute);
+app.use('/api/places',  placesRoute);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

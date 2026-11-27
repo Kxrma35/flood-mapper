@@ -2,10 +2,12 @@
 // Top-level layout: header, sidebar (route check + AI chat + rain indicator),
 // map panel, zone detail overlay, and live alerts ticker.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
+import RoutePanel from './components/RoutePanel';
+import { isZoneAtRiskNow, isZoneRiskKnown } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
 import { formatReading } from './format';
@@ -18,8 +20,6 @@ const ALERT_STATUS = {
   unknown: { label: 'NO DATA',       color: '#555',    icon: 'ti-cloud-off' },
   info:    { color: '#888', icon: 'ti-info-circle' },
 };
-
-const QUICK_CHECKS = ['Westlands', 'Eastlands', 'Kibera', 'Buruburu'];
 
 const API = import.meta.env.VITE_API_URL || '';
 const REFRESH_MS = 5 * 60 * 1000;
@@ -56,10 +56,9 @@ function buildFallbackGeoJSON() {
 }
 
 export default function App() {
-  const [origin, setOrigin] = useState('Westlands');
-  const [destination, setDestination] = useState('CBD');
-  const [submittedOrigin, setSubmittedOrigin] = useState('Westlands');
-  const [submittedDest, setSubmittedDest] = useState('CBD');
+  const [routePlan, setRoutePlan] = useState(null);
+  const [selectedRoute, setSelectedRoute] = useState('fastest');
+  const [chatTrip, setChatTrip] = useState({ origin: '', destination: '' });
   const [floodZones, setFloodZones] = useState(null);
   const [zonesAreSample, setZonesAreSample] = useState(false);
   const [selectedZone, setSelectedZone] = useState(null);
@@ -70,9 +69,10 @@ export default function App() {
 
   const { data: weather, error: weatherError } = useLiveData(`${API}/api/weather`, REFRESH_MS);
   const { data: predictionData } = useLiveData(`${API}/api/predict`, REFRESH_MS);
-  const predictions = Array.isArray(predictionData)
-    ? predictionData.filter(p => p.flood_probability != null)
-    : [];
+  const predictions = useMemo(
+    () => (Array.isArray(predictionData) ? predictionData.filter(p => p.flood_probability != null) : []),
+    [predictionData],
+  );
 
   // Clock
   useEffect(() => {
@@ -105,6 +105,12 @@ export default function App() {
   }, []);
 
   const precipMm = weather?.current_mm_per_hour ?? null;
+  const isAtRisk = useCallback(zone => isZoneAtRiskNow(zone, predictions, precipMm), [predictions, precipMm]);
+  const isRiskKnown = useCallback(zone => isZoneRiskKnown(zone, predictions, precipMm), [predictions, precipMm]);
+  const askAboutTrip = useCallback((origin, destination) => {
+    setChatTrip({ origin, destination });
+    setActiveTab('chat');
+  }, []);
   const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
   const selectedOverThreshold = selectedZone && precipMm != null && selectedZone.rain_threshold != null
     ? precipMm >= selectedZone.rain_threshold
@@ -189,44 +195,19 @@ export default function App() {
               ))}
             </div>
 
-            {/* ── ROUTE CHECK TAB ── */}
-            {activeTab === 'route' && (
-              <>
-                <div style={s.sectionLabel}>Check Route Safety</div>
-
-                {/* Origin */}
-                <div style={s.inputBox}>
-                  <i className="ti ti-map-pin" style={{ fontSize: 15, color: '#1D9E75', flexShrink: 0 }} aria-hidden="true" />
-                  <input value={origin} onChange={e => setOrigin(e.target.value)}
-                    placeholder="Origin (e.g. Westlands)"
-                    style={s.textInput} />
-                </div>
-
-                {/* Destination */}
-                <div style={s.inputBox}>
-                  <i className="ti ti-flag" style={{ fontSize: 15, color: '#EF9F27', flexShrink: 0 }} aria-hidden="true" />
-                  <input value={destination} onChange={e => setDestination(e.target.value)}
-                    placeholder="Destination (e.g. CBD)"
-                    style={s.textInput} />
-                </div>
-
-                <button onClick={() => { setSubmittedOrigin(origin); setSubmittedDest(destination); setActiveTab('chat'); }}
-                  style={s.checkBtn}>
-                  <i className="ti ti-shield-check" style={{ fontSize: 15 }} aria-hidden="true" />
-                  Check Route Safety
-                </button>
-
-                {/* Quick checks */}
-                <div style={{ ...s.sectionLabel, marginTop: 16 }}>Quick Checks</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
-                  {QUICK_CHECKS.map(q => (
-                    <button key={q}
-                      onClick={() => { setOrigin(q); setDestination('CBD'); setSubmittedOrigin(q); setSubmittedDest('CBD'); setActiveTab('chat'); }}
-                      style={s.quickBtn}>
-                      <i className="ti ti-arrow-up" style={{ fontSize: 11 }} aria-hidden="true" /> {q}
-                    </button>
-                  ))}
-                </div>
+            {/* ── ROUTE CHECK TAB ── (kept mounted so the trip survives switching tabs) */}
+            <div style={{ display: activeTab === 'route' ? 'block' : 'none' }}>
+                <RoutePanel
+                  zones={floodZones?.features ?? null}
+                  isAtRisk={isAtRisk}
+                  isRiskKnown={isRiskKnown}
+                  zonesAreSample={zonesAreSample}
+                  plan={routePlan}
+                  onPlan={setRoutePlan}
+                  selected={selectedRoute}
+                  onSelect={setSelectedRoute}
+                  onAskAI={askAboutTrip}
+                />
 
                 {/* Rainfall */}
                 <div style={s.sectionLabel}>Rainfall Intensity</div>
@@ -261,12 +242,10 @@ export default function App() {
                     </div>
                   </div>
                 </details>
-              </>
-            )}
+            </div>
 
-            {/* ── AI CHAT TAB ── */}
-            {activeTab === 'chat' && (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* ── AI CHAT TAB ── (kept mounted so the conversation survives switching tabs) */}
+            <div style={{ display: activeTab === 'chat' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
                 <div style={{ fontSize: 10, color: '#555', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <i className="ti ti-sparkles" style={{ fontSize: 12 }} aria-hidden="true" />
                   AI Flood Assistant
@@ -276,9 +255,8 @@ export default function App() {
                     </span>
                   )}
                 </div>
-                <AIChatPanel origin={submittedOrigin} destination={submittedDest} />
-              </div>
-            )}
+                <AIChatPanel origin={chatTrip.origin} destination={chatTrip.destination} />
+            </div>
 
           </div>
         </aside>
@@ -286,12 +264,12 @@ export default function App() {
         {/* ── MAP ── */}
         <main style={{ flex: 1, position: 'relative' }}>
           <MapView
-            origin={submittedOrigin}
-            destination={submittedDest}
             floodZones={floodZones}
             onZoneClick={setSelectedZone}
-            precipMm={precipMm}
-            predictions={predictions}
+            isAtRisk={isAtRisk}
+            routePlan={routePlan}
+            selectedRoute={selectedRoute}
+            onSelectRoute={setSelectedRoute}
           />
 
           {/* Zone detail overlay */}
@@ -398,10 +376,6 @@ const s = {
   tab: { flex: 1, padding: '7px 8px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#555', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 },
   tabActive: { background: '#222', color: '#e8e8e8', border: '1px solid #3a3a3a' },
   sectionLabel: { fontSize: 10, color: '#555', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 },
-  inputBox: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 },
-  textInput: { background: 'none', border: 'none', outline: 'none', color: '#e8e8e8', fontSize: 13, width: '100%', fontFamily: 'inherit' },
-  checkBtn: { width: '100%', padding: 11, background: '#EF9F27', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 2 },
-  quickBtn: { padding: '8px 10px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#1D9E75', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 },
   zonePanel: color => ({ position: 'absolute', top: 16, right: 16, width: 250, background: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(8px)', border: `1px solid ${color}40`, borderRadius: 10, padding: 14, zIndex: 1000 }),
   mapHint: { position: 'absolute', bottom: 20, left: 16, background: 'rgba(17,17,17,0.85)', backdropFilter: 'blur(4px)', border: '1px solid #2a2a2a', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#555', zIndex: 900, display: 'flex', alignItems: 'center', gap: 6 },
   ticker: { background: '#0d0d0d', borderTop: '1px solid #1e1e1e', padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 },
