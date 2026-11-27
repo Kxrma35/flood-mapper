@@ -37,7 +37,7 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
     });
   }
 
-  const overThreshold = zones.filter(z => rain >= z.rain_threshold);
+  const overThreshold = zones.filter(z => z.rain_threshold != null && rain >= z.rain_threshold);
   if (overThreshold.length) {
     messages.push({ level: 'high', text: `Rain of ${mmPerHour(rain)}${asOf} is at or above the ${threshold} for ${listNames(overThreshold)}.` });
   }
@@ -45,7 +45,7 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
   const upcoming = forecast.slice(1);
   const peak = upcoming.reduce((max, f) => (f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
   if (peak) {
-    const comingOver = zones.filter(z => peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
+    const comingOver = zones.filter(z => z.rain_threshold != null && peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
     messages.push(comingOver.length
       ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the ${threshold} for ${listNames(comingOver)}.` }
       : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}.` });

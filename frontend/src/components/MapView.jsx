@@ -94,7 +94,7 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
       const prediction = predictions.find(p => p.name === name);
       const isActivelyFlooding = prediction
         ? prediction.risk_level === 'HIGH'
-        : precipMm != null && precipMm >= rain_threshold;
+        : precipMm != null && rain_threshold != null && precipMm >= rain_threshold;
       const fillOpacity = isActivelyFlooding ? 0.6 : 0.35;
 
       const poly = L.geoJSON(feature, {

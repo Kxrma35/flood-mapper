@@ -104,6 +104,9 @@ export default function App() {
 
   const precipMm = weather?.current_mm_per_hour ?? null;
   const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
+  const selectedOverThreshold = selectedZone && precipMm != null && selectedZone.rain_threshold != null
+    ? precipMm >= selectedZone.rain_threshold
+    : null;
   const alerts = buildAlerts({
     weather,
     weatherError,
@@ -117,7 +120,7 @@ export default function App() {
   const formatTime = d => d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const formatDate = d => d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
-  const riskColor = r => r === 'high' ? '#E24B4A' : r === 'medium' ? '#EF9F27' : '#639922';
+  const riskColor = r => ({ high: '#E24B4A', medium: '#EF9F27', low: '#639922' })[r] ?? '#888';
 
   const zoneCounts = floodZones?.features?.reduce((acc, f) => {
     acc[f.properties.risk] = (acc[f.properties.risk] || 0) + 1;
@@ -310,7 +313,7 @@ export default function App() {
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <i className="ti ti-droplet" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
-                  <span>Flood threshold: <span style={{ color: '#e8e8e8' }}>{selectedZone.rain_threshold}mm/hr</span></span>
+                  <span>Flood threshold: <span style={{ color: '#e8e8e8' }}>{selectedZone.rain_threshold != null ? `${selectedZone.rain_threshold}mm/hr` : 'not recorded'}</span></span>
                 </div>
                 {selectedZone.residents > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -318,10 +321,12 @@ export default function App() {
                     <span>Residents: <span style={{ color: '#e8e8e8' }}>{selectedZone.residents.toLocaleString()}</span></span>
                   </div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                  <i className="ti ti-notes" style={{ fontSize: 13, color: '#555', marginTop: 1 }} aria-hidden="true" />
-                  <span style={{ color: '#bbb' }}>{selectedZone.notes}</span>
-                </div>
+                {selectedZone.notes && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                    <i className="ti ti-notes" style={{ fontSize: 13, color: '#555', marginTop: 1 }} aria-hidden="true" />
+                    <span style={{ color: '#bbb' }}>{selectedZone.notes}</span>
+                  </div>
+                )}
                 {selectedPrediction && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <i className="ti ti-chart-line" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
@@ -330,18 +335,16 @@ export default function App() {
                     </span></span>
                   </div>
                 )}
-                {precipMm != null && (
+                {selectedOverThreshold != null && (
                   <div style={{
                     marginTop: 4, padding: '6px 8px', borderRadius: 6,
-                    background: precipMm >= selectedZone.rain_threshold ? '#E24B4A15' : '#1D9E7515',
-                    border: `1px solid ${precipMm >= selectedZone.rain_threshold ? '#E24B4A30' : '#1D9E7530'}`,
-                    color: precipMm >= selectedZone.rain_threshold ? '#E24B4A' : '#1D9E75',
+                    background: selectedOverThreshold ? '#E24B4A15' : '#1D9E7515',
+                    border: `1px solid ${selectedOverThreshold ? '#E24B4A30' : '#1D9E7530'}`,
+                    color: selectedOverThreshold ? '#E24B4A' : '#1D9E75',
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}>
-                    <i className={`ti ${precipMm >= selectedZone.rain_threshold ? 'ti-alert-triangle' : 'ti-circle-check'}`} style={{ fontSize: 13 }} aria-hidden="true" />
-                    {precipMm >= selectedZone.rain_threshold
-                      ? 'Currently exceeding flood threshold'
-                      : 'Below flood threshold right now'}
+                    <i className={`ti ${selectedOverThreshold ? 'ti-alert-triangle' : 'ti-circle-check'}`} style={{ fontSize: 13 }} aria-hidden="true" />
+                    {selectedOverThreshold ? 'Currently exceeding flood threshold' : 'Below flood threshold right now'}
                   </div>
                 )}
               </div>
