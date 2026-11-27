@@ -156,33 +156,35 @@ It then exposes a single `POST /predict` endpoint that accepts a list of zones w
 
 ### Prerequisites
 
-- Node.js 18 or later
-- Python 3.10–3.12 (avoid the very latest Python release if scikit-learn does not yet publish wheels for it)
+- Node.js 20.19+ or 22.12+ (required by Vite 8)
+- Python 3.11 or later (required by scikit-learn 1.8.0, pinned in `ml/requirements.txt`; tested on 3.14)
 - An OpenAI API key (for the AI chat feature)
 
 ### 1. Clone and install dependencies
 
+Run every command from the repository root.
+
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Kxrma35/flood-mapper.git
 cd flood-mapper
 ```
 
-**Frontend:**
+**Frontend:** `package.json` is at the repository root; `vite.config.js` points Vite at `frontend/`.
 ```bash
-cd frontend
 npm install
 ```
 
 **Backend:**
 ```bash
-cd ../backend
-npm install
+npm install --prefix backend
 ```
 
-**ML service:**
+**ML service:** use a virtual environment (many Linux distributions block `pip install` into the system Python).
 ```bash
-cd ../ml
-python -m pip install flask flask-cors scikit-learn pandas joblib numpy
+python3 -m venv ml/.venv
+source ml/.venv/bin/activate        # Windows: ml\.venv\Scripts\activate
+python -m pip install -r ml/requirements.txt
+python -m pip install pandas        # only needed to retrain the model
 ```
 
 ### 2. Train the model (if `.pkl` files are not already present)
@@ -234,21 +236,19 @@ Three terminals, run in this order:
 
 **Terminal 1 — ML service:**
 ```bash
-cd ml
-python predict_server.py
+source ml/.venv/bin/activate        # Windows: ml\.venv\Scripts\activate
+python ml/predict_server.py
 ```
 Expected output: a line indicating Flask is running on port 5001.
 
 **Terminal 2 — Backend:**
 ```bash
-cd backend
-node index.js
+npm start --prefix backend
 ```
 Expected output: `Backend running on :3001`
 
 **Terminal 3 — Frontend:**
 ```bash
-cd frontend
 npm run dev
 ```
 Expected output: a local URL, typically `http://localhost:5173`
@@ -272,22 +272,11 @@ The ML service needs a Python runtime that can keep a process running continuous
 
 **Recommended options:**
 
-- **Render** (Web Service, free tier available): connect the repo, set the root directory to `ml/`, set the start command to `python predict_server.py` or, for production, `gunicorn predict_server:app`, and add a `requirements.txt` listing `flask`, `flask-cors`, `scikit-learn`, `pandas`, `joblib`, `numpy`.
+- **Render** (Web Service, free tier available): connect the repo, set the root directory to `ml/`, build command `pip install -r requirements.txt`, and start command `gunicorn predict_server:app`.
 - **Railway**: similar workflow, auto-detects Python, set the start command explicitly.
 - **Fly.io**: more control, requires a `Dockerfile`, good if you need a specific scikit-learn version pinned precisely.
 
-**Before deploying, pin your scikit-learn version.** Add a `requirements.txt` in `ml/`:
-
-```
-flask==3.0.3
-flask-cors==4.0.1
-scikit-learn==1.8.0
-pandas==2.2.2
-joblib==1.4.2
-numpy==1.26.4
-```
-
-Use whatever exact scikit-learn version was used to train `flood_model.pkl`. A mismatched version can fail to unpickle the model in production even if it works locally, since scikit-learn does not guarantee pickle compatibility across versions.
+**Keep scikit-learn pinned.** `ml/requirements.txt` pins `scikit-learn==1.8.0`, the version that trained `flood_model.pkl`. If you retrain with a different version, update the pin to match. A mismatched version can fail to unpickle the model in production even if it works locally, since scikit-learn does not guarantee pickle compatibility across versions.
 
 **For production, do not use Flask's built-in development server** (the one started by `app.run()`). Use a production WSGI server:
 
@@ -321,7 +310,7 @@ PORT=3001
 
 **Recommended options:**
 
-- **Vercel**: connect the repo, set the root directory to `frontend/`, framework preset "Vite," build command `npm run build`, output directory `dist`.
+- **Vercel**: connect the repo and leave the root directory as the repository root (where `package.json` is). Framework preset "Vite", build command `npm run build`, output directory `frontend/dist`.
 - **Netlify**: similar workflow.
 - **Render** (Static Site): also works.
 
@@ -357,6 +346,7 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 
 - **Rule-based labels.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, or 50mm in 24 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect. Real Nairobi flood records would make the probabilities mean something more.
 - **One location, so no per-zone prediction.** All training rows come from one point (-1.286, 36.817), so latitude and longitude have no effect and every zone gets the same probability. The map keeps each zone's historical risk colour and uses the model for the live "active" highlight. Per-zone predictions need per-zone weather and training data from more than one point.
+- **Sample zone data.** Until `frontend/public/flood-zones.geojson` is generated from a real dataset (`backend/convert-csv.js`), the map uses the built-in zones in `App.jsx`. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and the app labels them as sample data.
 - **No authentication or rate limiting** on the backend API. Acceptable for a demo or hackathon context; would need addressing before any public production use, particularly on `/api/ask` given OpenAI usage costs.
 
 ---
