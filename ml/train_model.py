@@ -3,6 +3,7 @@
 # -> features -> rule-based flood label -> calibrated GBM. The pipeline follows
 # nairobi_flood_model.ipynb, which analysed the central cell only (nairobi_raw.csv).
 import os
+import tempfile
 
 import joblib
 import pandas as pd
@@ -85,7 +86,10 @@ print(f"Brier   : {brier_score_loss(y_test, y_proba):.4f}")
 print("\nRows and rule-labelled flood hours per grid cell:")
 print(df.groupby("zones")["flood"].agg(rows="size", flood_hours="sum").to_string())
 
-joblib.dump(model,    os.path.join(HERE, "flood_model.pkl"))
-joblib.dump(scaler,   os.path.join(HERE, "scaler.pkl"))
-joblib.dump(FEATURES, os.path.join(HERE, "features.pkl"))
-print("Model saved!")
+# One bundle, written to a temporary file and swapped in at once, so the ML service can
+# never load a model, scaler and feature list from different training runs.
+fd, tmp_path = tempfile.mkstemp(dir=HERE, suffix=".tmp")
+os.close(fd)
+joblib.dump({"model": model, "scaler": scaler, "features": FEATURES}, tmp_path)
+os.replace(tmp_path, os.path.join(HERE, "model.joblib"))
+print("Model saved to ml/model.joblib")

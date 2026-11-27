@@ -2,6 +2,7 @@ const axios = require('axios');
 
 const NAIROBI = { latitude: -1.286, longitude: 36.817 };
 const CACHE_MS = 5 * 60 * 1000;
+const MAX_POINTS_PER_REQUEST = 50; // well under Open-Meteo's per-request location limit
 
 const cache = new Map();
 
@@ -51,11 +52,17 @@ async function fetchNairobiHourly() {
 }
 
 // Hourly weather for each point, in the same order. Points in the same model grid cell
-// (about 8 km) get the same series.
+// (about 8 km) get the same series. Large lists are sent in batches.
 async function fetchHourlyAt(points) {
-  const key = points.map(p => `${p.latitude},${p.longitude}`).join(';');
-  const results = await cachedFetch(key, () => requestForecast(points));
-  return results.map(atCurrentHour);
+  const batches = [];
+  for (let i = 0; i < points.length; i += MAX_POINTS_PER_REQUEST) {
+    batches.push(points.slice(i, i + MAX_POINTS_PER_REQUEST));
+  }
+  const results = await Promise.all(batches.map(batch => {
+    const key = batch.map(p => `${p.latitude},${p.longitude}`).join(';');
+    return cachedFetch(key, () => requestForecast(batch));
+  }));
+  return results.flat().map(atCurrentHour);
 }
 
 // Null when any hour in the window is missing, so a gap is never read as a dry spell.

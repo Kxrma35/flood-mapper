@@ -6,6 +6,7 @@
 #   python ml/fetch_history.py            -> ml/zone_history.csv.gz
 import json
 import os
+import tempfile
 import time
 import urllib.parse
 import urllib.request
@@ -74,7 +75,11 @@ def main():
         time.sleep(1)  # be gentle with the free archive API
 
     history = pd.concat(frames, ignore_index=True)
-    history.to_csv(OUTPUT_PATH, index=False, compression="gzip")
+    # Write to a temporary file and swap it in, so an interrupted run can't leave a broken file.
+    fd, tmp_path = tempfile.mkstemp(dir=HERE, suffix=".csv.gz.tmp")
+    os.close(fd)
+    history.to_csv(tmp_path, index=False, compression="gzip")
+    os.replace(tmp_path, OUTPUT_PATH)
     print(f"Saved {len(history):,} rows for {len(frames)} grid cells to {OUTPUT_PATH}")
 
 
