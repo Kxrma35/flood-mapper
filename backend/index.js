@@ -9,6 +9,7 @@ const askRoute     = require('./routes/ask');
 const predictRoute = require('./routes/predict');
 const routeRoute   = require('./routes/route');
 const placesRoute  = require('./routes/places');
+const recordsRoute = require('./routes/records');
 
 // Behind a hosting proxy (Render, Railway), set TRUST_PROXY to the number of proxies
 // (usually 1) so the rate limits count each visitor's own IP.
@@ -23,6 +24,7 @@ app.use('/api/ask',     askRoute);
 app.use('/api/predict', predictRoute);
 app.use('/api/route',   routeRoute);
 app.use('/api/places',  placesRoute);
+app.use('/api/records', recordsRoute);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

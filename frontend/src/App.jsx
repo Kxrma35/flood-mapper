@@ -7,6 +7,7 @@ import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import RoutePanel from './components/RoutePanel';
+import ZoneHistory from './components/ZoneHistory';
 import { isZoneAtRiskNow, isZoneRiskKnown, zoneRainNow } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
@@ -23,6 +24,7 @@ const ALERT_STATUS = {
 
 const API = import.meta.env.VITE_API_URL || '';
 const REFRESH_MS = 5 * 60 * 1000;
+const RECORDS_REFRESH_MS = 6 * 60 * 60 * 1000;
 
 function buildFallbackGeoJSON() {
   const zones = [
@@ -75,6 +77,7 @@ export default function App() {
     [predictionData, predictionError],
   );
   const reports = useMemo(() => zoneReports ?? [], [zoneReports]);
+  const { data: floodRecords, error: floodRecordsError } = useLiveData(`${API}/api/records`, RECORDS_REFRESH_MS);
 
   // Clock
   useEffect(() => {
@@ -335,6 +338,7 @@ export default function App() {
                     {selectedOverThreshold ? 'Currently exceeding flood threshold' : 'Below flood threshold right now'}
                   </div>
                 )}
+                <ZoneHistory zoneName={selectedZone.name} data={floodRecords} error={floodRecordsError} />
               </div>
             </div>
           )}
@@ -384,7 +388,7 @@ const s = {
   tab: { flex: 1, padding: '7px 8px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#555', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 },
   tabActive: { background: '#222', color: '#e8e8e8', border: '1px solid #3a3a3a' },
   sectionLabel: { fontSize: 10, color: '#555', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 },
-  zonePanel: color => ({ position: 'absolute', top: 16, right: 16, width: 250, background: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(8px)', border: `1px solid ${color}40`, borderRadius: 10, padding: 14, zIndex: 1000 }),
+  zonePanel: color => ({ position: 'absolute', top: 16, right: 16, width: 250, background: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(8px)', border: `1px solid ${color}40`, borderRadius: 10, padding: 14, zIndex: 1000, maxHeight: 'calc(100% - 32px)', overflowY: 'auto', boxSizing: 'border-box' }),
   mapHint: { position: 'absolute', bottom: 20, left: 16, background: 'rgba(17,17,17,0.85)', backdropFilter: 'blur(4px)', border: '1px solid #2a2a2a', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#555', zIndex: 900, display: 'flex', alignItems: 'center', gap: 6 },
   ticker: { background: '#0d0d0d', borderTop: '1px solid #1e1e1e', padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 },
   tickerBadge: bg => ({ background: bg, color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 3, fontWeight: 700, letterSpacing: 1, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }),

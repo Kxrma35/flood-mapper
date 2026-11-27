@@ -34,6 +34,11 @@ def get(params):
         return json.load(res)
 
 
+def load_zones():
+    with open(ZONES_PATH) as f:
+        return json.load(f)
+
+
 def grid_cells(zones):
     """Asks for one day at every zone to learn which grid cell each one falls in."""
     data = get({
@@ -52,19 +57,17 @@ def grid_cells(zones):
     return cells
 
 
-def main():
-    with open(ZONES_PATH) as f:
-        zones = json.load(f)
-
+def download(start=START, end=END):
+    """Hourly history for every zone's grid cell, one download per cell."""
     frames = []
-    for (lat, lon), names in grid_cells(zones).items():
-        print(f"Downloading {START}..{END} for cell ({lat}, {lon}): {', '.join(names)}")
+    for (lat, lon), names in grid_cells(load_zones()).items():
+        print(f"Downloading {start}..{end} for cell ({lat}, {lon}): {', '.join(names)}")
         data = get({
             "latitude": lat,
             "longitude": lon,
             "hourly": ",".join(VARIABLES),
-            "start_date": START,
-            "end_date": END,
+            "start_date": start,
+            "end_date": end,
             "timezone": "Africa/Nairobi",
         })
         frame = pd.DataFrame(data["hourly"]).rename(columns={"time": "datetime", **VARIABLES})
@@ -73,14 +76,18 @@ def main():
         frame.insert(2, "longitude", lon)
         frames.append(frame)
         time.sleep(1)  # be gentle with the free archive API
+    return pd.concat(frames, ignore_index=True)
 
-    history = pd.concat(frames, ignore_index=True)
+
+def main():
+    history = download()
     # Write to a temporary file and swap it in, so an interrupted run can't leave a broken file.
     fd, tmp_path = tempfile.mkstemp(dir=HERE, suffix=".csv.gz.tmp")
     os.close(fd)
     history.to_csv(tmp_path, index=False, compression="gzip")
+    os.chmod(tmp_path, 0o644)
     os.replace(tmp_path, OUTPUT_PATH)
-    print(f"Saved {len(history):,} rows for {len(frames)} grid cells to {OUTPUT_PATH}")
+    print(f"Saved {len(history):,} rows for {history['zones'].nunique()} grid cells to {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":
