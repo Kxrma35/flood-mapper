@@ -271,11 +271,7 @@ export default function App() {
                     </span>
                   )}
                 </div>
-                <AIChatPanel
-                  weatherMm={precipMm}
-                  origin={submittedOrigin}
-                  destination={submittedDest}
-                />
+                <AIChatPanel origin={submittedOrigin} destination={submittedDest} />
               </div>
             )}
 

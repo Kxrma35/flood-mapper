@@ -97,10 +97,15 @@ flood-mapper/
 │   ├── index.js               Server entry point, route mounting, CORS
 │   ├── routes/
 │   │   ├── weather.js          Fetches and processes Open-Meteo data
-│   │   ├── ask.js              Forwards questions to OpenAI with flood context
+│   │   ├── ask.js              Forwards questions to OpenAI with live conditions
 │   │   └── predict.js          Builds zone+weather payload, calls ML service
+│   ├── lib/
+│   │   ├── open-meteo.js       Hourly Nairobi weather, matched to Nairobi time
+│   │   ├── model-features.js   The 20 model inputs, built from live weather
+│   │   └── conditions.js       Live rain, forecast and model estimate for the AI chat
+│   ├── data/your-flood-data.csv  Optional real area dataset
 │   ├── convert-csv.js          One-off script: CSV → GeoJSON for the map
-│   ├── load-flood-data.js      Builds the AI system prompt from CSV data
+│   ├── load-flood-data.js      Builds the AI system prompt from the CSV or sample zones
 │   └── .env                    OPENAI_API_KEY, ML_URL, FRONTEND_URL, PORT
 │
 └── ml/                         Flask ML service (Python)
@@ -139,7 +144,7 @@ const mlRes = await axios.post(`${ML_URL}/predict`, { zones });
 
 ### Backend to OpenAI
 
-`/api/ask` builds a system prompt describing known flood-prone areas (either from a real CSV dataset if present, or from built-in fallback data), combines it with the user's question and current weather context, and calls the OpenAI API server-side. The API key never reaches the browser.
+`/api/ask` gives the model a system prompt listing flood-prone areas. The list comes from `backend/data/your-flood-data.csv` when that file exists; otherwise it uses the same sample zones as the map, and the prompt tells the model they are sample figures. With each question the backend adds live conditions it fetches itself: rain now, over 3 and 24 hours, the next 5 hours of forecast, and the flood model's estimate. The prompt tells the model to use only that data, never to invent road closures, river levels or official warnings, and to send anyone in danger to 999 or 112 and official alerts. The API key never reaches the browser.
 
 ### The ML Service Itself
 
@@ -194,7 +199,7 @@ python -m pip install pandas        # only needed to retrain the model
 python ml/train_model.py    # trains and saves flood_model.pkl, scaler.pkl, features.pkl into ml/
 ```
 
-`train_model.py` runs the same pipeline as the notebook (`ml/nairobi_flood_model (1).ipynb`) on `nairobi_raw.csv`, hourly Open-Meteo history for central Nairobi from 2018. It builds 20 features, and `backend/routes/predict.js` builds the same 20 from live weather. If you change a feature in one, change it in the other, or the ML service will answer with `missing features: ...`.
+`train_model.py` runs the same pipeline as the notebook (`ml/nairobi_flood_model (1).ipynb`) on `nairobi_raw.csv`, hourly Open-Meteo history for central Nairobi from 2018. It builds 20 features, and `backend/lib/model-features.js` builds the same 20 from live weather. If you change a feature in one, change it in the other, or the ML service will answer with `missing features: ...`.
 
 ---
 
@@ -347,7 +352,7 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 
 - **Rule-based labels.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, or 50mm in 24 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect. Real Nairobi flood records would make the probabilities mean something more.
 - **One location, so no per-zone prediction.** All training rows come from one point (-1.286, 36.817), so latitude and longitude have no effect and every zone gets the same probability. The map keeps each zone's historical risk colour and uses the model for the live "active" highlight. Per-zone predictions need per-zone weather and training data from more than one point.
-- **Sample zone data.** Until `frontend/public/flood-zones.geojson` is generated from a real dataset (`backend/convert-csv.js`), the map uses the built-in zones in `App.jsx`. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and the app labels them as sample data.
+- **Sample zone data.** Until a real dataset is added, the map uses the built-in zones in `App.jsx` and the AI chat uses the same zones. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and both label them as sample data. To use real data, put it at `backend/data/your-flood-data.csv` (columns `area_name`, `latitude`, `longitude`, `flood_frequency` or `flood_score`, `rain_threshold_mm`, `notes`). The AI chat reads it on startup, and `node backend/convert-csv.js` generates the map's `frontend/public/flood-zones.geojson` from it.
 - **No authentication or rate limiting** on the backend API. Acceptable for a demo or hackathon context; would need addressing before any public production use, particularly on `/api/ask` given OpenAI usage costs.
 
 ---
@@ -357,8 +362,8 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 **Frontend shows "Could not reach the server" or weather shows "undefined":**
 Check `frontend/.env` has `VITE_API_URL` pointing to the correct backend URL, and that the Vite dev server was restarted after the file was created or edited.
 
-**Backend crashes immediately on startup with an OpenAI error:**
-`backend/.env` is missing or missing `OPENAI_API_KEY`. The OpenAI client is constructed at import time, so a missing key crashes the whole server, not just the `/api/ask` route.
+**AI chat replies "The AI assistant is not set up on this server yet":**
+`OPENAI_API_KEY` is missing from `backend/.env` (or from the host's environment variables). The rest of the backend works without it; restart the backend after adding the key.
 
 **ML service fails to unpickle the model with an error mentioning an internal sklearn module:**
 The installed scikit-learn version does not match the version used to train and save `flood_model.pkl`. Either install the matching version or retrain the model with the currently installed version.

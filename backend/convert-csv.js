@@ -1,7 +1,11 @@
 const fs = require('fs');
+const path = require('path');
 const csv = require('csv-parse/sync');
- 
-const input = fs.readFileSync('your-flood-data.csv', 'utf8');
+
+const CSV_PATH = path.join(__dirname, 'data', 'your-flood-data.csv');
+const OUTPUT_PATH = path.join(__dirname, '..', 'frontend', 'public', 'flood-zones.geojson');
+
+const input = fs.readFileSync(CSV_PATH, 'utf8');
 const rows = csv.parse(input, { columns: true, skip_empty_lines: true });
  
 const RADIUS_METRES = 800;
@@ -46,6 +50,7 @@ const geojson = {
   })),
 };
  
-fs.writeFileSync('../frontend/public/flood-zones.geojson', JSON.stringify(geojson, null, 2));
+fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+fs.writeFileSync(OUTPUT_PATH, JSON.stringify(geojson, null, 2));
 console.log(`Converted ${rows.length} rows to frontend/public/flood-zones.geojson`);
  

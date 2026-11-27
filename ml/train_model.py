@@ -25,7 +25,7 @@ df["wind_speed"]  = df["wind_speed"].clip(0, 100)
 df["cloud_cover"] = df["cloud_cover"].clip(0, 100)
 df = df.drop_duplicates(subset=["datetime"]).sort_values("datetime").reset_index(drop=True)
 
-# ── Feature engineering (backend/routes/predict.js mirrors this) ─
+# ── Feature engineering (backend/lib/model-features.js mirrors this) ─
 df["rain_3h_mm"]  = df["precipitation_mm"].rolling(3,  min_periods=1).sum()
 df["rain_6h_mm"]  = df["precipitation_mm"].rolling(6,  min_periods=1).sum()
 df["rain_24h_mm"] = df["precipitation_mm"].rolling(24, min_periods=1).sum()
