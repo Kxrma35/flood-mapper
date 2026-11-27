@@ -51,7 +51,7 @@ Rules:
 - Use only the live conditions and the area list above. Rain is measured at one point, so treat it as a city-wide reading, not a reading for a specific place.
 - ${sourceRule}
 - Never invent road closures, river levels, traffic, incidents or official warnings. If asked about something this data does not cover, such as a specific road, say you don't have that information.
-- If the live conditions are unavailable, say the current risk can't be checked.
+- If the live conditions are unavailable, say the current risk can't be checked. A reading marked "not available" or "n/a" is missing, not zero; never treat it as dry weather.
 - You are not an official warning service. If someone is in danger or sees flooding, tell them to call 999 or 112 and to follow Kenya Meteorological Department and Nairobi County alerts.
 
 Always respond in this format:

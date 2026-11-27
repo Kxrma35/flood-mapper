@@ -43,10 +43,11 @@ async function fetchNairobiHourly() {
   return { hourly: data.hourly, index, currentTime };
 }
 
+// Null when any hour in the window is missing, so a gap is never read as a dry spell.
 function rainOverLast(hourly, index, hours) {
-  return hourly.precipitation
-    .slice(index - hours + 1, index + 1)
-    .reduce((sum, mm) => sum + (mm ?? 0), 0);
+  const readings = hourly.precipitation.slice(index - hours + 1, index + 1);
+  if (readings.length < hours || readings.some(mm => mm == null)) return null;
+  return readings.reduce((sum, mm) => sum + mm, 0);
 }
 
 module.exports = { fetchNairobiHourly, rainOverLast };

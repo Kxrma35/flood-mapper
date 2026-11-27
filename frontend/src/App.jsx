@@ -8,6 +8,7 @@ import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
+import { formatReading } from './format';
 
 const ALERT_STATUS = {
   high:    { label: 'HIGH RISK',     color: '#E24B4A', icon: 'ti-alert-triangle' },
@@ -152,15 +153,15 @@ export default function App() {
           </span>
           <span style={s.weatherItem}>
             <i className="ti ti-temperature" style={{ fontSize: 14 }} aria-hidden="true" />
-            {weather ? `${weather.temperature_c?.toFixed(0)}°C` : '--'}
+            {formatReading(weather?.temperature_c, v => `${v.toFixed(0)}°C`)}
           </span>
           <span style={s.weatherItem}>
             <i className="ti ti-droplet" style={{ fontSize: 14 }} aria-hidden="true" />
-            {weather ? `${weather.humidity_pct}%` : '--'}
+            {formatReading(weather?.humidity_pct, v => `${v}%`)}
           </span>
           <span style={s.weatherItem}>
             <i className="ti ti-wind" style={{ fontSize: 14 }} aria-hidden="true" />
-            {weather ? `${weather.wind_kmh} km/h` : '--'}
+            {formatReading(weather?.wind_kmh, v => `${v} km/h`)}
           </span>
           <span style={{ ...s.weatherItem, color: '#e8e8e8', fontWeight: 600 }}>
             <i className="ti ti-clock" style={{ fontSize: 14 }} aria-hidden="true" />

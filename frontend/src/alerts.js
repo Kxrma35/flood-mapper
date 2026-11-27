@@ -21,9 +21,15 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
   if (!weather || !zones) {
     return { level: 'unknown', messages: [{ level: 'unknown', text: 'Checking live weather...' }, DISCLAIMER] };
   }
+  if (weather.current_mm_per_hour == null) {
+    return {
+      level: 'unknown',
+      messages: [{ level: 'unknown', text: 'The latest rainfall reading is missing, so flood risk cannot be checked right now.' }, DISCLAIMER],
+    };
+  }
 
   const messages = [];
-  const rain = weather.current_mm_per_hour ?? 0;
+  const rain = weather.current_mm_per_hour;
   const forecast = weather.forecast ?? [];
   const asOf = forecast[0] ? ` as of ${clockTime(forecast[0].time)}` : '';
   const threshold = zonesAreSample ? 'sample flood threshold' : 'flood threshold';
@@ -43,14 +49,18 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
   }
 
   const upcoming = forecast.slice(1);
-  const peak = upcoming.reduce((max, f) => (f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
+  const forecastGaps = upcoming.some(f => f.precipitation == null);
+  const peak = upcoming.reduce((max, f) => (f.precipitation != null && f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
   if (peak) {
     const comingOver = zones.filter(z => z.rain_threshold != null && peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
     messages.push(comingOver.length
       ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the ${threshold} for ${listNames(comingOver)}.` }
       : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}.` });
-  } else if (upcoming.length) {
+  } else if (upcoming.length && !forecastGaps) {
     messages.push({ level: 'info', text: `No rain forecast for the next ${upcoming.length} hours.` });
+  }
+  if (forecastGaps) {
+    messages.push({ level: 'info', text: 'Some forecast hours are missing from the weather data.' });
   }
 
   if (!predictions.length) {
