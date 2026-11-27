@@ -1,0 +1,424 @@
+{
+ "built": "2026-11-27",
+ "sources": {
+  "desinventar": {
+   "name": "DesInventar Sendai, Kenya disaster loss database (KEN-DLD)",
+   "url": "https://www.desinventar.net/DesInventar/profiletab.jsp?countrycode=ken",
+   "terms": "Owned by the contributing Kenyan institutions; shared publicly with a request for citation."
+  },
+  "unosat": {
+   "name": "UNITAR-UNOSAT, Flood impact analysis in Nairobi, Kenya, as of 1 May 2024 (preliminary, not field-validated)",
+   "url": "https://data.humdata.org/dataset/70148c8d-4d8a-4e70-8c03-c9bb8370cfb7",
+   "terms": "CC BY-SA. The per-zone figures here are derived from it and shared under the same licence."
+  }
+ },
+ "near_zone_m": 1000,
+ "records": [
+  {
+   "date": "2002-05-14",
+   "place": "Buruburu",
+   "zone": "Eastlands",
+   "cause": "Flood",
+   "impacts": {
+    "deaths": 3
+   },
+   "description": null,
+   "reported_by": "GoK",
+   "source": "desinventar",
+   "source_id": "960"
+  },
+  {
+   "date": "2002-05-14",
+   "place": null,
+   "zone": null,
+   "cause": "Flood",
+   "impacts": {
+    "deaths": 6
+   },
+   "description": null,
+   "reported_by": "GoK",
+   "source": "desinventar",
+   "source_id": "961"
+  },
+  {
+   "date": "2002-05-14",
+   "place": "Kilimani",
+   "zone": null,
+   "cause": "Flood",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": null,
+   "reported_by": "GoK",
+   "source": "desinventar",
+   "source_id": "962"
+  },
+  {
+   "date": "2009-12-22",
+   "place": "Kibera",
+   "zone": "Kibera",
+   "cause": "El Niño",
+   "impacts": {
+    "houses_destroyed": 60
+   },
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1289"
+  },
+  {
+   "date": "2009-12-22",
+   "place": "Makadara",
+   "zone": null,
+   "cause": "El Niño",
+   "impacts": {
+    "houses_damaged": 33
+   },
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1290"
+  },
+  {
+   "date": "2009-12-23",
+   "place": null,
+   "zone": null,
+   "cause": "El Niño",
+   "impacts": {
+    "deaths": 4
+   },
+   "description": "vehicles were destroyed and roofs of buildings blown away",
+   "reported_by": "GoK",
+   "source": "desinventar",
+   "source_id": "262"
+  },
+  {
+   "date": "2009-12-23",
+   "place": "Nairobi",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 4
+   },
+   "description": null,
+   "reported_by": "GOK",
+   "source": "desinventar",
+   "source_id": "79"
+  },
+  {
+   "date": "2010-04-20",
+   "place": null,
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "houses_damaged": 300
+   },
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1214"
+  },
+  {
+   "date": "2010-07-01",
+   "place": "Kawangware",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {},
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1176"
+  },
+  {
+   "date": "2010-07-01",
+   "place": "Uthiru",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {},
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1177"
+  },
+  {
+   "date": "2010-07-01",
+   "place": "Kitisuru",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {},
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1178"
+  },
+  {
+   "date": "2010-07-01",
+   "place": "Ngando",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {},
+   "description": null,
+   "reported_by": "IFRC",
+   "source": "desinventar",
+   "source_id": "1179"
+  },
+  {
+   "date": "2012-05-04",
+   "place": "Ruai",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "people_affected": 100
+   },
+   "description": "100 people were marooned with floods",
+   "reported_by": "NDOC",
+   "source": "desinventar",
+   "source_id": "1299"
+  },
+  {
+   "date": "2012-05-13",
+   "place": "near Mathare river",
+   "zone": null,
+   "cause": "Drowning",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": null,
+   "reported_by": "kpr",
+   "source": "desinventar",
+   "source_id": "1315"
+  },
+  {
+   "date": "2013-03-13",
+   "place": "Kawangware",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": "The deceased swept away down Nairobi river. Body was retrieved and taken to Chiromo mortuary.",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "7028"
+  },
+  {
+   "date": "2013-03-13",
+   "place": "Ngoro",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 4,
+    "missing": 1
+   },
+   "description": "four people were swept away by floods.",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "7029"
+  },
+  {
+   "date": "2013-03-13",
+   "place": "NAIROBI CBD",
+   "zone": "CBD",
+   "cause": "Rain",
+   "impacts": {
+    "injured": 2
+   },
+   "description": null,
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "7032"
+  },
+  {
+   "date": "2013-03-29",
+   "place": "Kawangware",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": "Body retrieved and taken to Chiromo mortuary",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "5441"
+  },
+  {
+   "date": "2013-03-29",
+   "place": "Ngoro",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 4,
+    "missing": 1
+   },
+   "description": "The Deaceased were swept away by flooding waters.",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "5445"
+  },
+  {
+   "date": "2013-03-29",
+   "place": "CBD",
+   "zone": "CBD",
+   "cause": "Rain",
+   "impacts": {
+    "injured": 2
+   },
+   "description": "2 people almost drowned in running waters",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "5446"
+  },
+  {
+   "date": "2013-04-16",
+   "place": "Adumai village",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 2,
+    "injured": 1,
+    "people_affected": 5
+   },
+   "description": "Heavy rainfall that caused house collapse and cause seriously injured.",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "10178"
+  },
+  {
+   "date": "2015-03-24",
+   "place": "Kibera Laini saba",
+   "zone": "Kibera",
+   "cause": "Unknown",
+   "impacts": {
+    "houses_destroyed": 200
+   },
+   "description": "200 iron houses were destroyed",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "7005"
+  },
+  {
+   "date": "2015-10-15",
+   "place": "Industrial area",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {},
+   "description": "Over 1500 students sent home.",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "6815"
+  },
+  {
+   "date": "2015-11-14",
+   "place": "Nairobi",
+   "zone": null,
+   "cause": "Drowning",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": "1 person reported dead due to drowning.",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "6876"
+  },
+  {
+   "date": "2015-12-13",
+   "place": "Nairobi",
+   "zone": null,
+   "cause": "Rain",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": "Body yet to be retrieved",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "5577"
+  },
+  {
+   "date": "2015-12-13",
+   "place": "Ruai",
+   "zone": null,
+   "cause": "Flood",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": "Body retrieved",
+   "reported_by": "KP",
+   "source": "desinventar",
+   "source_id": "5578"
+  },
+  {
+   "date": "2016-06-17",
+   "place": "Kamiti Prison",
+   "zone": null,
+   "cause": "Drowning",
+   "impacts": {
+    "deaths": 2
+   },
+   "description": "Bodies retrieved",
+   "reported_by": null,
+   "source": "desinventar",
+   "source_id": "24235"
+  },
+  {
+   "date": "2022-04-29",
+   "place": "Kibarage area, Mowlem",
+   "zone": null,
+   "cause": "Drowning",
+   "impacts": {
+    "deaths": 1
+   },
+   "description": null,
+   "reported_by": "Police report",
+   "source": "desinventar",
+   "source_id": "31444"
+  }
+ ],
+ "satellite_2024": {
+  "event": "FL20240426KEN",
+  "event_start": "2024-04-26",
+  "date": "2024-05-01",
+  "source": "unosat",
+  "zones": {
+   "Mathare Valley": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 49.1,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Kibera": {
+    "analysed": false
+   },
+   "Mukuru kwa Njenga": {
+    "analysed": true,
+    "analysed_pct": 78.9,
+    "cloud_pct": 0.2,
+    "flooded_pct": 1.9,
+    "affected_structures": 421
+   },
+   "Pangani": {
+    "analysed": true,
+    "analysed_pct": 76.9,
+    "cloud_pct": 0.5,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Eastlands": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 57.4,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Upper Hill": {
+    "analysed": false
+   },
+   "Westlands": {
+    "analysed": false
+   },
+   "CBD": {
+    "analysed": false
+   }
+  }
+ }
+}
