@@ -2,24 +2,54 @@
 // Top-level layout: header, sidebar (route check + AI chat + rain indicator),
 // map panel, zone detail overlay, and live alerts ticker.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
+import { buildAlerts } from './alerts';
 
-const ALERTS = [
-  'LIVE – Mathare River water level: 2.4m (danger threshold: 1.8m) – Flash flood warning in effect',
-  'KMD – Heavy rainfall advisory: 25–40mm expected in next 3 hours across Nairobi',
-  'County DRR – Evacuation notice issued for Mathare North Zone 3 and 4',
-  'CROWD – Flooding reported on Outer Ring Road near Huruma estate (12 min ago)',
-  'NWSC – Water supply disruption in Kibera due to pump station flooding',
-  'KMD – Ngong River gauge at 89% capacity. Downstream communities on alert',
-  'CROWD – Impassable section on Ngong Road at Adam\'s Arcade (7 min ago)',
-];
+const ALERT_STATUS = {
+  high:    { label: 'HIGH RISK',     color: '#E24B4A', icon: 'ti-alert-triangle' },
+  medium:  { label: 'ELEVATED RISK', color: '#EF9F27', icon: 'ti-alert-triangle' },
+  none:    { label: 'NO ALERTS',     color: '#1D9E75', icon: 'ti-circle-check' },
+  unknown: { label: 'NO DATA',       color: '#555',    icon: 'ti-cloud-off' },
+  info:    { color: '#888', icon: 'ti-info-circle' },
+};
 
 const QUICK_CHECKS = ['Westlands', 'Eastlands', 'Kibera', 'Buruburu'];
 
 const API = import.meta.env.VITE_API_URL || '';
+
+function buildFallbackGeoJSON() {
+  const zones = [
+    { name: 'Mathare Valley', lat: -1.258, lng: 36.859, risk: 'high', rain_threshold: 10, residents: 82000, notes: 'Riverbank area, floods within 20 mins' },
+    { name: 'Kibera', lat: -1.313, lng: 36.784, risk: 'high', rain_threshold: 10, residents: 250000, notes: 'Low-lying, poor drainage' },
+    { name: 'Mukuru kwa Njenga', lat: -1.318, lng: 36.878, risk: 'high', rain_threshold: 10, residents: 100000, notes: 'Industrial runoff compounds risk' },
+    { name: 'Pangani', lat: -1.275, lng: 36.843, risk: 'medium', rain_threshold: 18, residents: 35000, notes: 'Surface flooding on main roads' },
+    { name: 'Eastlands', lat: -1.285, lng: 36.876, risk: 'medium', rain_threshold: 15, residents: 60000, notes: 'Flash flooding in sections 1–3' },
+    { name: 'Upper Hill', lat: -1.299, lng: 36.818, risk: 'low', rain_threshold: 30, residents: 12000, notes: 'Good drainage, minor pooling' },
+    { name: 'Westlands', lat: -1.268, lng: 36.807, risk: 'low', rain_threshold: 25, residents: 28000, notes: 'Lower areas prone to surface water' },
+    { name: 'CBD', lat: -1.284, lng: 36.822, risk: 'low', rain_threshold: 30, residents: 0, notes: 'Main roads drain quickly' },
+  ];
+  const d = 0.008;
+  return {
+    type: 'FeatureCollection',
+    features: zones.map(z => ({
+      type: 'Feature',
+      properties: { name: z.name, risk: z.risk, rain_threshold: z.rain_threshold, residents: z.residents, notes: z.notes },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [z.lng - d, z.lat - d * 1.2],
+          [z.lng + d * 1.1, z.lat - d * 0.8],
+          [z.lng + d * 0.9, z.lat + d * 1.2],
+          [z.lng - d * 1.1, z.lat + d * 0.6],
+          [z.lng - d, z.lat - d * 1.2],
+        ]],
+      },
+    })),
+  };
+}
 
 export default function App() {
   const [origin, setOrigin] = useState('Westlands');
@@ -27,12 +57,20 @@ export default function App() {
   const [submittedOrigin, setSubmittedOrigin] = useState('Westlands');
   const [submittedDest, setSubmittedDest] = useState('CBD');
   const [floodZones, setFloodZones] = useState(null);
+  const [zonesAreSample, setZonesAreSample] = useState(false);
   const [selectedZone, setSelectedZone] = useState(null);
   const [weather, setWeather] = useState(null);
+  const [weatherError, setWeatherError] = useState(false);
   const [alertIndex, setAlertIndex] = useState(0);
   const [alertVisible, setAlertVisible] = useState(true);
   const [time, setTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState('route'); // 'route' | 'chat'
+
+  const handleWeather = useCallback(data => {
+    setWeather(data);
+    setWeatherError(false);
+  }, []);
+  const handleWeatherError = useCallback(() => setWeatherError(true), []);
 
   // Clock
   useEffect(() => {
@@ -45,7 +83,7 @@ export default function App() {
     const t = setInterval(() => {
       setAlertVisible(false);
       setTimeout(() => {
-        setAlertIndex(i => (i + 1) % ALERTS.length);
+        setAlertIndex(i => i + 1);
         setAlertVisible(true);
       }, 400);
     }, 5000);
@@ -60,39 +98,9 @@ export default function App() {
       .catch(() => {
         // Fallback: inline sample data until real CSV is converted
         setFloodZones(buildFallbackGeoJSON());
+        setZonesAreSample(true);
       });
   }, []);
-
-  function buildFallbackGeoJSON() {
-    const zones = [
-      { name: 'Mathare Valley', lat: -1.258, lng: 36.859, risk: 'high', rain_threshold: 10, residents: 82000, notes: 'Riverbank area, floods within 20 mins' },
-      { name: 'Kibera', lat: -1.313, lng: 36.784, risk: 'high', rain_threshold: 10, residents: 250000, notes: 'Low-lying, poor drainage' },
-      { name: 'Mukuru kwa Njenga', lat: -1.318, lng: 36.878, risk: 'high', rain_threshold: 10, residents: 100000, notes: 'Industrial runoff compounds risk' },
-      { name: 'Pangani', lat: -1.275, lng: 36.843, risk: 'medium', rain_threshold: 18, residents: 35000, notes: 'Surface flooding on main roads' },
-      { name: 'Eastlands', lat: -1.285, lng: 36.876, risk: 'medium', rain_threshold: 15, residents: 60000, notes: 'Flash flooding in sections 1–3' },
-      { name: 'Upper Hill', lat: -1.299, lng: 36.818, risk: 'low', rain_threshold: 30, residents: 12000, notes: 'Good drainage, minor pooling' },
-      { name: 'Westlands', lat: -1.268, lng: 36.807, risk: 'low', rain_threshold: 25, residents: 28000, notes: 'Lower areas prone to surface water' },
-      { name: 'CBD', lat: -1.284, lng: 36.822, risk: 'low', rain_threshold: 30, residents: 0, notes: 'Main roads drain quickly' },
-    ];
-    const d = 0.008;
-    return {
-      type: 'FeatureCollection',
-      features: zones.map(z => ({
-        type: 'Feature',
-        properties: { name: z.name, risk: z.risk, rain_threshold: z.rain_threshold, residents: z.residents, notes: z.notes },
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[
-            [z.lng - d, z.lat - d * 1.2],
-            [z.lng + d * 1.1, z.lat - d * 0.8],
-            [z.lng + d * 0.9, z.lat + d * 1.2],
-            [z.lng - d * 1.1, z.lat + d * 0.6],
-            [z.lng - d, z.lat - d * 1.2],
-          ]],
-        },
-      })),
-    };
-  }
 
   const [predictions, setPredictions] = useState([]);
 
@@ -116,6 +124,15 @@ export default function App() {
 
   const precipMm = weather?.current_mm_per_hour ?? null;
   const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
+  const alerts = buildAlerts({
+    weather,
+    weatherError,
+    predictions,
+    zones: floodZones?.features?.map(f => f.properties) ?? [],
+  });
+  const alertStatus = ALERT_STATUS[alerts.level];
+  const currentAlert = alerts.messages[alertIndex % alerts.messages.length];
+  const currentAlertStyle = ALERT_STATUS[currentAlert.level];
   const formatTime = d => d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const formatDate = d => d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -137,15 +154,17 @@ export default function App() {
           </div>
           <span style={s.appName}>FloodSafe</span>
           <span style={s.badge('#1D9E75')}>NAIROBI</span>
-          <span style={{ ...s.alertBadge, background: '#E24B4A20', color: '#E24B4A', border: '1px solid #E24B4A50' }}>
-            <i className="ti ti-alert-triangle" style={{ fontSize: 11 }} aria-hidden="true" />
-            FLOOD WATCH ACTIVE
-          </span>
+          {(alerts.level === 'high' || alerts.level === 'medium') && (
+            <span style={{ ...s.alertBadge, background: alertStatus.color + '20', color: alertStatus.color, border: `1px solid ${alertStatus.color}50` }}>
+              <i className={`ti ${alertStatus.icon}`} style={{ fontSize: 11 }} aria-hidden="true" />
+              {alertStatus.label}
+            </span>
+          )}
         </div>
         <div style={s.headerRight}>
           <span style={s.weatherItem}>
             <i className="ti ti-cloud-rain" style={{ fontSize: 14 }} aria-hidden="true" />
-            {weather?.description || 'Loading...'}
+            {weather?.description || (weatherError ? 'Weather unavailable' : 'Loading...')}
           </span>
           <span style={s.weatherItem}>
             <i className="ti ti-temperature" style={{ fontSize: 14 }} aria-hidden="true" />
@@ -225,10 +244,10 @@ export default function App() {
 
                 {/* Rainfall */}
                 <div style={s.sectionLabel}>Rainfall Intensity</div>
-                <RainIndicator onWeatherUpdate={setWeather} />
+                <RainIndicator onWeatherUpdate={handleWeather} onWeatherError={handleWeatherError} />
 
                 {/* Zone counter */}
-                <div style={{ ...s.sectionLabel, marginTop: 16 }}>Active Zones</div>
+                <div style={{ ...s.sectionLabel, marginTop: 16 }}>Zone Risk Levels</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 16 }}>
                   {[['high', 'HIGH', '#E24B4A'], ['medium', 'MED', '#EF9F27'], ['low', 'LOW', '#639922']].map(([k, l, c]) => (
                     <div key={k} style={{ background: c + '15', border: `1px solid ${c}30`, borderRadius: 6, padding: '8px 6px', textAlign: 'center' }}>
@@ -251,7 +270,8 @@ export default function App() {
                       </div>
                     ))}
                     <div style={{ marginTop: 8, fontSize: 10, color: '#444', lineHeight: 1.6 }}>
-                      Data: KMD weather feeds · NWSC river gauges · County DRR reports · Crowdsourced incidents
+                      Weather: Open-Meteo · Live risk: FloodSafe model
+                      {zonesAreSample && ' · Zone levels and thresholds: sample data'}
                     </div>
                   </div>
                 </details>
@@ -357,14 +377,14 @@ export default function App() {
 
       {/* ── ALERTS TICKER ── */}
       <footer style={s.ticker}>
-        <span style={s.tickerBadge}>
-          <i className="ti ti-radio" style={{ fontSize: 11 }} aria-hidden="true" />
-          LIVE ALERTS
+        <span style={s.tickerBadge(alertStatus.color)}>
+          <i className={`ti ${alertStatus.icon}`} style={{ fontSize: 11 }} aria-hidden="true" />
+          {alertStatus.label}
         </span>
-        <div style={{ flex: 1, overflow: 'hidden' }}>
+        <div style={{ flex: 1, overflow: 'hidden' }} role="status" aria-live="polite">
           <span style={{ fontSize: 12, color: '#aaa', opacity: alertVisible ? 1 : 0, transition: 'opacity 0.4s', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <i className="ti ti-bolt" style={{ fontSize: 12, color: '#EF9F27', flexShrink: 0 }} aria-hidden="true" />
-            {ALERTS[alertIndex]}
+            <i className={`ti ${currentAlertStyle.icon}`} style={{ fontSize: 12, color: currentAlertStyle.color, flexShrink: 0 }} aria-hidden="true" />
+            {currentAlert.text}
           </span>
         </div>
       </footer>
@@ -397,5 +417,5 @@ const s = {
   zonePanel: color => ({ position: 'absolute', top: 16, right: 16, width: 250, background: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(8px)', border: `1px solid ${color}40`, borderRadius: 10, padding: 14, zIndex: 1000 }),
   mapHint: { position: 'absolute', bottom: 20, left: 16, background: 'rgba(17,17,17,0.85)', backdropFilter: 'blur(4px)', border: '1px solid #2a2a2a', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#555', zIndex: 900, display: 'flex', alignItems: 'center', gap: 6 },
   ticker: { background: '#0d0d0d', borderTop: '1px solid #1e1e1e', padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 },
-  tickerBadge: { background: '#E24B4A', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 3, fontWeight: 700, letterSpacing: 1, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 },
+  tickerBadge: bg => ({ background: bg, color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 3, fontWeight: 700, letterSpacing: 1, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }),
 };

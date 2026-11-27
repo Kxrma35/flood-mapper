@@ -82,6 +82,7 @@ flood-mapper/
 ├── frontend/                 React application (Vite)
 │   ├── src/
 │   │   ├── App.jsx           Top-level layout, state, route/zone logic
+│   │   ├── alerts.js         Builds the alert ticker from live weather, model and zone data
 │   │   ├── components/
 │   │   │   ├── MapView.jsx        Leaflet map, flood zone rendering
 │   │   │   ├── AIChatPanel.jsx    AI assistant chat interface
@@ -213,6 +214,14 @@ VITE_API_URL=http://localhost:3001
 
 In local development this file is optional: the Vite dev server proxies `/api` to `http://localhost:3001`. It is required for a deployed frontend.
 
+Optional, for the dark basemap:
+
+```
+VITE_CARTO_KEY=your-carto-basemaps-key
+```
+
+CARTO's dark map tiles need a key, free for non-commercial use (request one at https://carto.com/basemaps/apikey; requesting it accepts CARTO's basemap terms). Without a key the map uses OpenStreetMap's standard tiles, dimmed to match the dark UI. Those are fine for development and light use under the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/), but not for heavy traffic. The key ends up in tile URLs in the browser, so it is public by nature; it is not a secret.
+
 **Important:** Vite only reads `.env` files when its dev server starts. If you create or edit this file while `npm run dev` is already running, stop the process (Ctrl+C) and start it again — a hot reload alone will not pick up the change.
 
 Neither `.env` file should be committed to version control. Both should be listed in `.gitignore`.
@@ -320,9 +329,10 @@ PORT=3001
 
 ```
 VITE_API_URL=https://your-backend.onrender.com
+VITE_CARTO_KEY=your-carto-basemaps-key
 ```
 
-This must point to the deployed backend URL, not `localhost`.
+`VITE_API_URL` must point to the deployed backend URL, not `localhost`. `VITE_CARTO_KEY` is optional but recommended for a public deployment (see above).
 
 ### Deployment Order
 

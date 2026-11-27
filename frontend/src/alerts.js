@@ -1,0 +1,67 @@
+const DISCLAIMER = {
+  level: 'info',
+  text: 'FloodSafe estimates from Open-Meteo weather data, not official warnings. Follow the Kenya Meteorological Department and Nairobi County for official alerts.',
+};
+
+const mmPerHour = mm => `${mm.toFixed(1)} mm/hr`;
+const clockTime = isoTime => isoTime.slice(11, 16);
+
+function listNames(zones) {
+  const names = zones.map(z => z.name);
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+}
+
+export function buildAlerts({ weather, weatherError, predictions, zones }) {
+  if (weatherError) {
+    return {
+      level: 'unknown',
+      messages: [{ level: 'unknown', text: 'Live weather is unavailable, so flood risk cannot be checked right now.' }, DISCLAIMER],
+    };
+  }
+  if (!weather) {
+    return { level: 'unknown', messages: [{ level: 'unknown', text: 'Checking live weather...' }] };
+  }
+
+  const messages = [];
+  const rain = weather.current_mm_per_hour ?? 0;
+  const forecast = weather.forecast ?? [];
+  const asOf = forecast[0] ? ` as of ${clockTime(forecast[0].time)}` : '';
+
+  const top = predictions.reduce((max, p) => (!max || p.flood_probability > max.flood_probability ? p : max), null);
+  if (top && top.risk_level !== 'LOW') {
+    const high = top.risk_level === 'HIGH';
+    messages.push({
+      level: high ? 'high' : 'medium',
+      text: `${high ? 'High' : 'Elevated'} flood risk${asOf}: the model puts it at ${Math.round(top.flood_probability * 100)}% from central Nairobi rainfall of ${mmPerHour(rain)} now, ${weather.rolling?.rain_3h_mm ?? 0} mm over 3 hours and ${weather.rolling?.rain_24h_mm ?? 0} mm over 24 hours.`,
+    });
+  }
+
+  const overThreshold = zones.filter(z => rain >= z.rain_threshold);
+  if (overThreshold.length) {
+    messages.push({ level: 'high', text: `Rain of ${mmPerHour(rain)} is at or above the flood threshold for ${listNames(overThreshold)}.` });
+  }
+
+  const upcoming = forecast.slice(1);
+  const peak = upcoming.reduce((max, f) => (f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
+  if (peak) {
+    const comingOver = zones.filter(z => peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
+    messages.push(comingOver.length
+      ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the flood threshold for ${listNames(comingOver)}.` }
+      : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}.` });
+  } else if (upcoming.length) {
+    messages.push({ level: 'info', text: `No rain forecast for the next ${upcoming.length} hours.` });
+  }
+
+  if (!predictions.length) {
+    messages.push({ level: 'info', text: 'Flood model unavailable, so alerts use rain thresholds only.' });
+  }
+
+  const level = messages.some(m => m.level === 'high') ? 'high'
+    : messages.some(m => m.level === 'medium') ? 'medium'
+    : 'none';
+  if (level === 'none') {
+    messages.unshift({ level: 'none', text: `No flood alerts${asOf}. Rain now: ${mmPerHour(rain)}.` });
+  }
+
+  return { level, messages: [...messages, DISCLAIMER] };
+}

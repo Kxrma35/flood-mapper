@@ -14,25 +14,34 @@ function getRiskLabel(mm) {
   return { label: 'NONE', color: '#555' };
 }
 
-export default function RainIndicator({ onWeatherUpdate }) {
+export default function RainIndicator({ onWeatherUpdate, onWeatherError }) {
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
-  async function fetchWeather() {
-    try {
-      const { data } = await axios.get(`${API}/api/weather`);
-      setWeather(data);
-      onWeatherUpdate?.(data);
-    } catch {
-      setError('Weather unavailable');
-    }
-  }
-
   useEffect(() => {
+    let cancelled = false;
+
+    async function fetchWeather() {
+      try {
+        const { data } = await axios.get(`${API}/api/weather`);
+        if (cancelled) return;
+        setWeather(data);
+        setError(null);
+        onWeatherUpdate?.(data);
+      } catch {
+        if (cancelled) return;
+        setError('Weather unavailable');
+        onWeatherError?.();
+      }
+    }
+
     fetchWeather();
     const interval = setInterval(fetchWeather, 5 * 60 * 1000); // every 5 min
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [onWeatherUpdate, onWeatherError]);
 
   if (error) {
     return (

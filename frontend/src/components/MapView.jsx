@@ -14,6 +14,23 @@ L.Icon.Default.mergeOptions({
 
 const RISK_COLORS = { high: '#E24B4A', medium: '#EF9F27', low: '#639922' };
 
+const CARTO_KEY = import.meta.env.VITE_CARTO_KEY;
+const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+// CARTO's dark basemap needs a (free) key. Without one, fall back to OpenStreetMap's
+// own tiles, which allow light use without a key: operations.osmfoundation.org/policies/tiles/
+const BASEMAP = CARTO_KEY
+  ? {
+      url: `https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(CARTO_KEY)}`,
+      attribution: `${OSM_ATTRIBUTION} &copy; <a href="https://carto.com/attributions">CARTO</a>`,
+      className: '',
+    }
+  : {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: OSM_ATTRIBUTION,
+      className: 'osm-dark',
+    };
+
 export default function MapView({ origin, destination, floodZones, onZoneClick, precipMm, predictions = [] }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -30,8 +47,9 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
       zoomControl: false,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OSM contributors',
+    L.tileLayer(BASEMAP.url, {
+      attribution: BASEMAP.attribution,
+      className: BASEMAP.className,
       maxZoom: 19,
     }).addTo(map);
 
@@ -90,7 +108,7 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
 
       zoneLayersRef.current.push(poly, marker);
     });
-  }, [floodZones, precipMm, predictions]);
+  }, [floodZones, precipMm, predictions, onZoneClick]);
 
   // Draw route line whenever origin/destination changes
   useEffect(() => {
@@ -142,6 +160,7 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       <style>{`
         @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
+        .osm-dark { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35); }
       `}</style>
     </div>
   );
