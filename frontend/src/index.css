@@ -19,3 +19,5 @@ html, body, #root {
 .leaflet-popup-tip { background: #1a1a1a; }
 
 input, button { font-family: inherit; }
+/* Each pixel of the flood-depth layer is a modelled 100 m cell; keep the cells visible. */
+.hazard-layer { image-rendering: pixelated; }
