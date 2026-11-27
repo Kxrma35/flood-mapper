@@ -8,8 +8,11 @@
 #   - UNITAR-UNOSAT flood impact analysis of Nairobi on 1 May 2024 (CC BY-SA).
 #   - Reports naming the worst-hit settlements: SPACE4ALL's "Diagnostic of Urban Flooding in
 #     Nairobi" (2024) and WRI's "Flooding in Nairobi's Informal Settlements" (2026).
-# A place becomes a flood area only with evidence of real flooding: a report names it, a
-# DesInventar flood report names it, or the 2024 satellite image shows flooding near it. The
+#   - ml/flood_reports.json: dated Nairobi floods since 2017 from news and agency reports,
+#     summarised by hand with a link to each report.
+# A place becomes a flood area only with evidence of real flooding: a study names it, a
+# DesInventar or news report of a flood names it, or the 2024 satellite image shows flooding
+# near it. The
 # modelled hazard is shown for each area but never decides which areas are listed.
 #
 #   pip install pyogrio shapely pandas   # only needed for this script
@@ -42,6 +45,7 @@ ROOT = os.path.join(HERE, "..")
 AREAS_PATH = os.path.join(ROOT, "backend", "data", "flood-areas.json")
 RECORDS_PATH = os.path.join(ROOT, "backend", "data", "flood-records.json")
 GEOJSON_PATH = os.path.join(ROOT, "frontend", "public", "flood-zones.geojson")
+REPORTS_PATH = os.path.join(HERE, "flood_reports.json")
 HAZARD_PNG_PATH = os.path.join(ROOT, "frontend", "public", "flood-hazard.png")
 
 DESINVENTAR_ZIP = "https://www.desinventar.net/DesInventar/download/DI_export_ken.zip"
@@ -79,6 +83,11 @@ RECORD_SOURCES = {
         "url": "https://www.desinventar.net/DesInventar/profiletab.jsp?countrycode=ken",
         "terms": "Owned by the contributing Kenyan institutions; shared publicly with a request for citation.",
     },
+    "reports": {
+        "name": "News and agency reports of Nairobi floods since 2017 (ml/flood_reports.json)",
+        "url": "https://github.com/Kxrma35/flood-mapper/blob/main/ml/flood_reports.json",
+        "terms": "Summarised in FloodSafe's own words, with a link to each report.",
+    },
     "unosat": {
         "name": "UNITAR-UNOSAT, Flood impact analysis in Nairobi, Kenya, as of 1 May 2024 (preliminary, not field-validated)",
         "url": "https://data.humdata.org/dataset/70148c8d-4d8a-4e70-8c03-c9bb8370cfb7",
@@ -99,7 +108,14 @@ NAMED_IN_REPORTS = {
 # The CBD isn't tagged as a place in OpenStreetMap; this is its "Central Business District" area.
 CBD = "way/239077078"
 DISPLAY_NAMES = {CBD: "CBD"}
-ALIASES = {"CBD": ["central business district"]}
+# Other spellings reports use for the same place.
+ALIASES = {
+    "CBD": ["central business district"],
+    "Kibera": ["kibra"],
+    "Babadogo": ["baba dogo"],
+    "Mukuru Kwa Ruben": ["mukuru kwa reuben"],
+    "Langata": ["lang'ata"],
+}
 
 IMPACTS = {"muertos": "deaths", "heridos": "injured", "desaparece": "missing", "afectados": "people_affected",
            "evacuados": "evacuated", "vivdest": "houses_destroyed", "vivafec": "houses_damaged"}
@@ -195,6 +211,36 @@ def desinventar_floods(xml_path, place_for):
             })
         el.clear()
     return sorted(records, key=lambda r: (r["date"], r["source_id"]))
+
+
+def news_reports(place_for):
+    """One record per area a report names (or one Nairobi-wide record if it names none)."""
+    with open(REPORTS_PATH) as f:
+        reports = json.load(f)
+    records = []
+    for report in reports:
+        named = {}
+        for place in report["places"]:
+            area = place_for(place)
+            if area:
+                named.setdefault(area, []).append(place)
+        base = {
+            "date": report["date"],
+            "date_end": report.get("date_end"),
+            "date_note": report.get("date_note"),
+            "cause": "Rain",
+            "impacts": report.get("impacts", {}),
+            "description": report["description"],
+            "reported_by": report.get("reported_by"),
+            "source": "reports",
+            "source_id": report["id"],
+            "links": report["sources"],
+        }
+        if named:
+            records += [{**base, "zone": area, "place": ", ".join(places)} for area, places in named.items()]
+        else:
+            records.append({**base, "zone": None, "place": ", ".join(report["places"])})
+    return records
 
 
 def circle(lat, lon, metres=RADIUS_M, points=64):
@@ -297,6 +343,7 @@ def main():
         print("Downloading DesInventar Kenya export...")
         download_zip(DESINVENTAR_ZIP, folder)
         records = desinventar_floods(os.path.join(folder, "DI_export_ken.xml"), place_for)
+        records = sorted(records + news_reports(place_for), key=lambda r: (r["date"], r["source_id"]))
         print("Downloading UNOSAT 1 May 2024 Nairobi analysis...")
         download_zip(UNOSAT_ZIP, folder)
         unosat = Unosat(os.path.join(folder, "FL20240426KEN.gdb"))
@@ -306,13 +353,16 @@ def main():
             out.write(fetch(HAZARD_CSV))
         cells = pd.read_csv(hazard_path, encoding="utf-8-sig")
 
-    reported = {r["zone"] for r in records if r["zone"]}
+    named_in = lambda source: {r["zone"] for r in records if r["zone"] and r["source"] == source}
+    in_desinventar, in_reports = named_in("desinventar"), named_in("reports")
     areas, satellite = [], {}
     for place in places:
         seen = unosat.near(place)
         evidence = list(NAMED_IN_REPORTS.get(place["osm"], []))
-        if place["name"] in reported:
+        if place["name"] in in_desinventar:
             evidence.append("desinventar")
+        if place["name"] in in_reports:
+            evidence.append("reports")
         if seen["analysed"] and (seen["flooded_pct"] >= UNOSAT_MIN_FLOODED_PCT or seen["affected_structures"] >= UNOSAT_MIN_STRUCTURES):
             evidence.append("unosat")
         if evidence:
@@ -349,8 +399,10 @@ def main():
         } for a in areas],
     }, indent=None)
 
-    matched = sum(1 for r in records if r["zone"])
-    print(f"{len(areas)} flood areas from {len(places)} places; {len(records)} Nairobi flood records ({matched} matched to an area)")
+    matched = sum(1 for r in records if r["zone"] and r["source"] == "desinventar")
+    print(f"{len(areas)} flood areas from {len(places)} places; {sum(r['source'] == 'desinventar' for r in records)} DesInventar "
+          f"records ({matched} matched to an area); {len(json.load(open(REPORTS_PATH)))} news reports naming "
+          f"{len(in_reports)} areas")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 // name, and UNOSAT's satellite analysis of 1 May 2024. Both are incomplete, and the panel
 // says so instead of letting an empty list read as "never floods".
 
-import { describeImpacts, formatRecordDate, satelliteSummary } from '../floodRecords';
+import { describeImpacts, formatRecordDates, satelliteSummary } from '../floodRecords';
 
 const row = { display: 'flex', alignItems: 'flex-start', gap: 6 };
 const icon = { fontSize: 13, color: '#555', marginTop: 1 };
@@ -39,17 +39,25 @@ export default function ZoneHistory({ zoneName, data, error }) {
       {records.length ? (
         records.map(r => (
           <div key={r.source_id} style={{ paddingLeft: 19 }}>
-            <span style={{ color: '#e8e8e8' }}>{formatRecordDate(r.date)}</span>
+            <span style={{ color: '#e8e8e8' }}>{formatRecordDates(r)}</span>
             {r.place && <span> · {r.place}</span>}
-            {(describeImpacts(r.impacts) || r.description) && (
-              <div style={{ color: '#bbb' }}>{describeImpacts(r.impacts) || r.description}</div>
+            {/* News reports carry a fuller summary; DesInventar records are mostly figures. */}
+            {(r.source === 'reports' ? r.description : describeImpacts(r.impacts) || r.description) && (
+              <div style={{ color: '#bbb' }}>{r.source === 'reports' ? r.description : describeImpacts(r.impacts) || r.description}</div>
             )}
             {r.reported_by && <div style={{ color: '#666' }}>Reported by {r.reported_by}</div>}
+            {r.links?.length > 0 && (
+              <div style={{ color: '#666' }}>
+                {r.links.map((l, i) => (
+                  <span key={l.url}>{i > 0 && ', '}<a href={l.url} target="_blank" rel="noreferrer" style={link}>{l.publisher}</a></span>
+                ))}
+              </div>
+            )}
           </div>
         ))
       ) : (
         <div style={{ paddingLeft: 19 }}>
-          None in DesInventar's Nairobi reports. They are incomplete, so this doesn't mean it hasn't flooded here.
+          None found for this area. Flood reports are incomplete, so this doesn't mean it hasn't flooded here.
         </div>
       )}
       {satellite && (
@@ -58,7 +66,8 @@ export default function ZoneHistory({ zoneName, data, error }) {
         </div>
       )}
       <div style={{ paddingLeft: 19, color: '#666' }}>
-        Sources: <a href={data.sources.desinventar.url} target="_blank" rel="noreferrer" style={link}>DesInventar</a>,{' '}
+        Sources: <a href={data.sources.desinventar.url} target="_blank" rel="noreferrer" style={link}>DesInventar</a>,
+        news reports (linked above),{' '}
         <a href={data.sources.unosat.url} target="_blank" rel="noreferrer" style={link}>UNOSAT</a> (preliminary)
       </div>
     </div>

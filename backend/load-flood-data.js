@@ -19,7 +19,8 @@ function describeRecords(name) {
   const reports = recordsForZone(name).map(r => {
     const impacts = Object.entries(IMPACTS).filter(([key]) => r.impacts[key]).map(([key, [one, many]]) => `${r.impacts[key]} ${r.impacts[key] === 1 ? one : many}`);
     const place = r.place && r.place.toLowerCase() !== name.toLowerCase() ? ` at ${asDataText(r.place)}` : '';
-    return `${r.date}${place}${impacts.length ? ` (${impacts.join(', ')})` : ''}`;
+    const when = r.date_end && r.date_end !== r.date ? `${r.date} to ${r.date_end}` : r.date;
+    return `${when}${place}${impacts.length ? ` (${impacts.join(', ')})` : ''}`;
   });
   const satellite = satelliteForZone(name);
   const image = !satellite ? null
@@ -74,8 +75,8 @@ ${areaList.join('\n')}
 Rules:
 - Use only the live conditions and the area list above. Rain is measured at one point, so treat it as a city-wide reading, not a reading for a specific place.
 - ${sourceRule}
-- Recorded floods come from DesInventar disaster reports and one UNOSAT satellite image from 1 May 2024. Both are incomplete, so an area with no record can still flood. Mention a record only as past history, with its date.
-- The FloodSafe model warned for only 1 of 12 recorded Nairobi floods it was tested on (late April 2024, after days of rain). A LOW estimate does not mean it is safe; never say it is safe on the model's word alone.
+- Recorded floods come from DesInventar disaster reports, news and agency reports since 2017, and one UNOSAT satellite image from 1 May 2024. Both are incomplete, so an area with no record can still flood. Mention a record only as past history, with its date.
+- The FloodSafe model warned for only 1 of 16 recorded Nairobi floods it was tested on (late April 2024, after days of rain), and missed the deadly floods of 6-7 March 2026. A LOW estimate does not mean it is safe; never say it is safe on the model's word alone.
 - Never invent road closures, river levels, traffic, incidents or official warnings. If asked about something this data does not cover, such as a specific road, say you don't have that information.
 - If the live conditions are unavailable, say the current risk can't be checked. A reading marked "not available" or "n/a" is missing, not zero; never treat it as dry weather.
 - You are not an official warning service. If someone is in danger or sees flooding, tell them to call 999 or 112 and to follow Kenya Meteorological Department and Nairobi County alerts.

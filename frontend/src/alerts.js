@@ -2,7 +2,7 @@ import { isZoneRiskKnown, zoneRainNow } from './risk';
 
 const DISCLAIMER = {
   level: 'info',
-  text: 'FloodSafe estimates from Open-Meteo weather data, not official warnings. Tested on 12 recorded Nairobi floods, the model warned for only 1. Follow the Kenya Meteorological Department and Nairobi County for official alerts.',
+  text: 'FloodSafe estimates from Open-Meteo weather data, not official warnings. Tested on 16 recorded Nairobi floods, the model warned for only 1. Follow the Kenya Meteorological Department and Nairobi County for official alerts.',
 };
 
 const mmPerHour = mm => `${mm.toFixed(1)} mm/hr`;

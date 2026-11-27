@@ -231,7 +231,7 @@ export default function App() {
                     ))}
                     <div style={{ marginTop: 8, fontSize: 10, color: '#444', lineHeight: 1.6 }}>
                       Weather: Open-Meteo · Live risk: FloodSafe model
-                      {!showLevels && ' · Areas: OpenStreetMap, SPACE4ALL, WRI, DesInventar, UNOSAT'}
+                      {!showLevels && ' · Areas: OpenStreetMap, SPACE4ALL, WRI, DesInventar, news reports, UNOSAT'}
                     </div>
                   </div>
                 </details>
