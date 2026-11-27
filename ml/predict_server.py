@@ -26,6 +26,12 @@ except FileNotFoundError:
     print("WARNING: ml/model.joblib not found. Run ml/train_model.py first.")
 
 
+@app.route("/health")
+def health():
+    """For the host's health check: fails until the model has loaded."""
+    return jsonify({"status": "ok" if MODEL_READY else "model not loaded"}), 200 if MODEL_READY else 503
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     """
