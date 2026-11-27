@@ -28,7 +28,7 @@ function requestForecast(points) {
         latitude: points.map(p => p.latitude).join(','),
         longitude: points.map(p => p.longitude).join(','),
         hourly: 'precipitation,weathercode,windspeed_10m,relativehumidity_2m,temperature_2m,cloudcover',
-        past_days: 2,
+        past_days: 3, // enough for the model's 72-hour rain total
         forecast_days: 2,
         timezone: 'Africa/Nairobi',
       },

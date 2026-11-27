@@ -1,13 +1,13 @@
-source,from,to,what,max_rain_mm_per_hr,max_rain_24h_mm,max_probability,model_high
-DesInventar,2002-05-13,2002-05-14,Buruburu; Nairobi (no place given); Kilimani,0.3,11.0,0.0,False
-DesInventar,2009-12-21,2009-12-22,Kibera; Makadara,0.2,0.2,0.0,False
-DesInventar,2009-12-22,2009-12-23,Nairobi (no place given); Nairobi,1.7,4.4,0.0,False
-DesInventar,2010-04-19,2010-04-20,Nairobi (no place given),3.2,6.3,0.0,False
-DesInventar,2010-06-30,2010-07-01,Kawangware; Uthiru; Kitisuru; Ngando,0.0,0.0,0.0,False
-DesInventar,2012-05-03,2012-05-04,Ruai,6.0,16.5,0.0,False
-DesInventar,2013-03-12,2013-03-13,Kawangware; Ngoro; NAIROBI CBD,0.5,3.0,0.0,False
-DesInventar,2013-03-28,2013-03-29,Kawangware; Ngoro; CBD,6.5,33.3,0.0,False
-DesInventar,2013-04-15,2013-04-16,Adumai village,3.1,16.3,0.0,False
-DesInventar,2015-10-14,2015-10-15,Industrial area,0.0,1.1,0.0,False
-DesInventar,2015-12-12,2015-12-13,Nairobi; Ruai,1.1,6.2,0.0,False
-UNOSAT,2024-04-26,2024-05-01,event FL20240426KEN (satellite image 2024-05-01),8.9,34.6,0.0,False
+source,from,to,what,max_rain_mm_per_hr,max_rain_24h_mm,max_rain_72h_mm,max_probability,model_high
+DesInventar,2002-05-13,2002-05-14,Buruburu; Nairobi (no place given); Kilimani,0.3,11.0,23.3,0.0,False
+DesInventar,2009-12-21,2009-12-22,Kibera; Makadara,0.2,0.2,0.5,0.0,False
+DesInventar,2009-12-22,2009-12-23,Nairobi (no place given); Nairobi,1.7,4.4,4.6,0.0,False
+DesInventar,2010-04-19,2010-04-20,Nairobi (no place given),3.2,6.3,19.8,0.0,False
+DesInventar,2010-06-30,2010-07-01,Kawangware; Uthiru; Kitisuru; Ngando,0.0,0.0,0.5,0.0,False
+DesInventar,2012-05-03,2012-05-04,Ruai,6.0,16.5,53.4,0.0,False
+DesInventar,2013-03-12,2013-03-13,Kawangware; Ngoro; NAIROBI CBD,0.5,3.0,7.1,0.0,False
+DesInventar,2013-03-28,2013-03-29,Kawangware; Ngoro; CBD,6.5,33.3,50.8,0.0,False
+DesInventar,2013-04-15,2013-04-16,Adumai village,3.1,16.3,41.8,0.0,False
+DesInventar,2015-10-14,2015-10-15,Industrial area,0.0,1.1,5.1,0.0,False
+DesInventar,2015-12-12,2015-12-13,Nairobi; Ruai,1.1,6.2,7.0,0.0,False
+UNOSAT,2024-04-26,2024-05-01,event FL20240426KEN (satellite image 2024-05-01),8.9,34.6,65.1,0.999,True
