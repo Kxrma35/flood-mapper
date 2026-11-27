@@ -8,10 +8,12 @@ import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import RoutePanel from './components/RoutePanel';
 import ZoneHistory from './components/ZoneHistory';
+import ZoneEvidence from './components/ZoneEvidence';
 import { isZoneAtRiskNow, isZoneRiskKnown, zoneRainNow } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
 import { formatReading } from './format';
+import { AT_RISK_COLOR, LEVELS, ZONE_COLORS, hasRiskLevels, zoneColor } from './zoneStyle';
 
 const ALERT_STATUS = {
   high:    { label: 'HIGH RISK',     color: '#E24B4A', icon: 'ti-alert-triangle' },
@@ -26,43 +28,12 @@ const API = import.meta.env.VITE_API_URL || '';
 const REFRESH_MS = 5 * 60 * 1000;
 const RECORDS_REFRESH_MS = 6 * 60 * 60 * 1000;
 
-function buildFallbackGeoJSON() {
-  const zones = [
-    { name: 'Mathare Valley', lat: -1.258, lng: 36.859, risk: 'high', rain_threshold: 10, residents: 82000, notes: 'Riverbank area, floods within 20 mins' },
-    { name: 'Kibera', lat: -1.313, lng: 36.784, risk: 'high', rain_threshold: 10, residents: 250000, notes: 'Low-lying, poor drainage' },
-    { name: 'Mukuru kwa Njenga', lat: -1.318, lng: 36.878, risk: 'high', rain_threshold: 10, residents: 100000, notes: 'Industrial runoff compounds risk' },
-    { name: 'Pangani', lat: -1.275, lng: 36.843, risk: 'medium', rain_threshold: 18, residents: 35000, notes: 'Surface flooding on main roads' },
-    { name: 'Eastlands', lat: -1.285, lng: 36.876, risk: 'medium', rain_threshold: 15, residents: 60000, notes: 'Flash flooding in sections 1–3' },
-    { name: 'Upper Hill', lat: -1.299, lng: 36.818, risk: 'low', rain_threshold: 30, residents: 12000, notes: 'Good drainage, minor pooling' },
-    { name: 'Westlands', lat: -1.268, lng: 36.807, risk: 'low', rain_threshold: 25, residents: 28000, notes: 'Lower areas prone to surface water' },
-    { name: 'CBD', lat: -1.284, lng: 36.822, risk: 'low', rain_threshold: 30, residents: 0, notes: 'Main roads drain quickly' },
-  ];
-  const d = 0.008;
-  return {
-    type: 'FeatureCollection',
-    features: zones.map(z => ({
-      type: 'Feature',
-      properties: { name: z.name, risk: z.risk, rain_threshold: z.rain_threshold, residents: z.residents, notes: z.notes },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [z.lng - d, z.lat - d * 1.2],
-          [z.lng + d * 1.1, z.lat - d * 0.8],
-          [z.lng + d * 0.9, z.lat + d * 1.2],
-          [z.lng - d * 1.1, z.lat + d * 0.6],
-          [z.lng - d, z.lat - d * 1.2],
-        ]],
-      },
-    })),
-  };
-}
-
 export default function App() {
   const [routePlan, setRoutePlan] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState('fastest');
   const [chatTrip, setChatTrip] = useState({ origin: '', destination: '' });
   const [floodZones, setFloodZones] = useState(null);
-  const [zonesAreSample, setZonesAreSample] = useState(false);
+  const [zonesError, setZonesError] = useState(false);
   const [selectedZone, setSelectedZone] = useState(null);
   const [alertIndex, setAlertIndex] = useState(0);
   const [alertVisible, setAlertVisible] = useState(true);
@@ -97,15 +68,18 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
-  // Load GeoJSON flood zones from public/
+  // Flood areas from frontend/public/flood-zones.geojson, built by ml/build_flood_data.py
+  // (or by backend/convert-csv.js from an area dataset of your own).
   useEffect(() => {
     fetch('/flood-zones.geojson')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(setFloodZones)
-      .catch(() => {
-        // Fallback: inline sample data until real CSV is converted
-        setFloodZones(buildFallbackGeoJSON());
-        setZonesAreSample(true);
+      .catch(err => {
+        console.error('Flood areas failed to load:', err.message);
+        setZonesError(true);
       });
   }, []);
 
@@ -127,7 +101,7 @@ export default function App() {
     weatherError,
     reports: zoneReports,
     zones: floodZones ? floodZones.features.map(f => f.properties) : null,
-    zonesAreSample,
+    zonesError,
   });
   const alertStatus = ALERT_STATUS[alerts.level];
   const currentAlert = alerts.messages[alertIndex % alerts.messages.length];
@@ -135,12 +109,17 @@ export default function App() {
   const formatTime = d => d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const formatDate = d => d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
-  const riskColor = r => ({ high: '#E24B4A', medium: '#EF9F27', low: '#639922' })[r] ?? '#888';
-
-  const zoneCounts = floodZones?.features?.reduce((acc, f) => {
-    acc[f.properties.risk] = (acc[f.properties.risk] || 0) + 1;
-    return acc;
-  }, {}) || {};
+  const zoneProps = floodZones?.features?.map(f => f.properties) ?? [];
+  const showLevels = hasRiskLevels(zoneProps);
+  const zoneCounts = zoneProps.reduce((acc, z) => ({ ...acc, [z.risk]: (acc[z.risk] || 0) + 1 }), {});
+  const atRiskCount = zoneProps.filter(isAtRisk).length;
+  const legend = [
+    ...(showLevels
+      ? LEVELS.map(level => [ZONE_COLORS[level], `${level[0].toUpperCase()}${level.slice(1)} risk zone`])
+      : [[ZONE_COLORS.documented, 'Area with documented flooding']]),
+    [AT_RISK_COLOR, 'At flood risk now (bold outline)'],
+    ['#1D9E75', 'Selected route'],
+  ];
 
   return (
     <div style={s.root}>
@@ -208,7 +187,6 @@ export default function App() {
                   zones={floodZones?.features ?? null}
                   isAtRisk={isAtRisk}
                   isRiskKnown={isRiskKnown}
-                  zonesAreSample={zonesAreSample}
                   plan={routePlan}
                   onPlan={setRoutePlan}
                   selected={selectedRoute}
@@ -221,15 +199,21 @@ export default function App() {
                 <RainIndicator weather={weather} error={weatherError} />
 
                 {/* Zone counter */}
-                <div style={{ ...s.sectionLabel, marginTop: 16 }}>Zone Risk Levels</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 16 }}>
-                  {[['high', 'HIGH', '#E24B4A'], ['medium', 'MED', '#EF9F27'], ['low', 'LOW', '#639922']].map(([k, l, c]) => (
+                <div style={{ ...s.sectionLabel, marginTop: 16 }}>{showLevels ? 'Zone Risk Levels' : 'Flood Areas'}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: showLevels ? '1fr 1fr 1fr' : '1fr 1fr', gap: 6, marginBottom: 16 }}>
+                  {(showLevels
+                    ? [['high', 'HIGH', ZONE_COLORS.high], ['medium', 'MED', ZONE_COLORS.medium], ['low', 'LOW', ZONE_COLORS.low]].map(([k, l, c]) => [k, l, c, zoneCounts[k] || 0])
+                    : [['all', 'DOCUMENTED', ZONE_COLORS.documented, zoneProps.length], ['now', 'AT RISK NOW', AT_RISK_COLOR, atRiskCount]]
+                  ).map(([k, l, c, n]) => (
                     <div key={k} style={{ background: c + '15', border: `1px solid ${c}30`, borderRadius: 6, padding: '8px 6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: c }}>{zoneCounts[k] || 0}</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: c }}>{n}</div>
                       <div style={{ fontSize: 10, color: c + 'aa' }}>{l}</div>
                     </div>
                   ))}
                 </div>
+                {zonesError && (
+                  <div style={{ fontSize: 11, color: '#888', marginTop: -8, marginBottom: 16 }}>Flood areas couldn't be loaded.</div>
+                )}
 
                 {/* Map legend */}
                 <details style={{ marginBottom: 16 }}>
@@ -237,7 +221,7 @@ export default function App() {
                     <i className="ti ti-chevron-down" style={{ fontSize: 11 }} aria-hidden="true" /> Map Legend
                   </summary>
                   <div style={{ marginTop: 8 }}>
-                    {[['#E24B4A', 'High risk zone'], ['#EF9F27', 'Medium risk zone'], ['#639922', 'Low risk zone'], ['#1D9E75', 'Selected route']].map(([c, l]) => (
+                    {legend.map(([c, l]) => (
                       <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                         <div style={{ width: 12, height: 12, background: c, borderRadius: 2, flexShrink: 0 }} />
                         <span style={{ fontSize: 11, color: '#666' }}>{l}</span>
@@ -245,7 +229,7 @@ export default function App() {
                     ))}
                     <div style={{ marginTop: 8, fontSize: 10, color: '#444', lineHeight: 1.6 }}>
                       Weather: Open-Meteo · Live risk: FloodSafe model
-                      {zonesAreSample && ' · Zone levels and thresholds: sample data'}
+                      {!showLevels && ' · Areas: OpenStreetMap, SPACE4ALL, WRI, DesInventar, UNOSAT'}
                     </div>
                   </div>
                 </details>
@@ -281,23 +265,18 @@ export default function App() {
 
           {/* Zone detail overlay */}
           {selectedZone && (
-            <div style={s.zonePanel(riskColor(selectedZone.risk))}>
+            <div style={s.zonePanel(zoneColor(selectedZone.risk))}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <span style={{ fontWeight: 700, fontSize: 13 }}>{selectedZone.name}</span>
-                <span style={{ marginLeft: 'auto', background: riskColor(selectedZone.risk) + '20', color: riskColor(selectedZone.risk), border: `1px solid ${riskColor(selectedZone.risk)}50`, fontSize: 10, padding: '2px 7px', borderRadius: 3, fontWeight: 700 }}>
-                  {selectedZone.risk?.toUpperCase()}
+                <span style={{ marginLeft: 'auto', background: zoneColor(selectedZone.risk) + '20', color: zoneColor(selectedZone.risk), border: `1px solid ${zoneColor(selectedZone.risk)}50`, fontSize: 10, padding: '2px 7px', borderRadius: 3, fontWeight: 700 }}>
+                  {selectedZone.risk === 'documented' ? 'FLOODED BEFORE' : selectedZone.risk?.toUpperCase()}
                 </span>
                 <button onClick={() => setSelectedZone(null)} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>
                   <i className="ti ti-x" style={{ fontSize: 14 }} aria-hidden="true" />
                 </button>
               </div>
               <div style={{ fontSize: 11, color: '#888', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {zonesAreSample && (
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '6px 8px', borderRadius: 6, background: '#EF9F2715', border: '1px solid #EF9F2730', color: '#EF9F27' }}>
-                    <i className="ti ti-info-circle" style={{ fontSize: 13, marginTop: 1 }} aria-hidden="true" />
-                    <span>Sample data: this zone's risk level, threshold, residents and notes are placeholders with no verified source.</span>
-                  </div>
-                )}
+                <ZoneEvidence zone={selectedZone} meta={floodZones?.floodsafe} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <i className="ti ti-droplet" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
                   <span>Flood threshold: <span style={{ color: '#e8e8e8' }}>{selectedZone.rain_threshold != null ? `${selectedZone.rain_threshold}mm/hr` : 'not recorded'}</span></span>
@@ -325,7 +304,7 @@ export default function App() {
                 {selectedPrediction && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <i className="ti ti-chart-line" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
-                    <span>Model flood probability: <span style={{ color: riskColor(selectedPrediction.risk_level.toLowerCase()) }}>
+                    <span>Model flood probability: <span style={{ color: zoneColor(selectedPrediction.risk_level.toLowerCase()) }}>
                       {(selectedPrediction.flood_probability * 100).toFixed(0)}% ({selectedPrediction.risk_level})
                     </span></span>
                   </div>

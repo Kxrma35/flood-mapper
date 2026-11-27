@@ -1,0 +1,413 @@
+{
+ "built": "2026-11-27",
+ "radius_m": 1000,
+ "sources": {
+  "osm": {
+   "name": "OpenStreetMap: place names and points",
+   "url": "https://www.openstreetmap.org/copyright",
+   "terms": "© OpenStreetMap contributors, ODbL."
+  },
+  "space4all_model": {
+   "name": "SPACE4ALL (University of Twente), city-scale flood hazard modelled with FASTFLOOD, Nairobi",
+   "url": "https://zenodo.org/records/18659986",
+   "terms": "CC BY 4.0. A simplified model of one 10-12 hour storm that ignores drains and culverts and was not calibrated."
+  },
+  "space4all_report": {
+   "name": "SPACE4ALL, Diagnostic of Urban Flooding in Nairobi: Report 2024",
+   "url": "https://kenyaclimatedirectory.org/resources/6904e4c4502d2",
+   "terms": "Names Mathare, Kibera and Korogocho as disproportionately affected."
+  },
+  "wri_brief": {
+   "name": "WRI, Flooding in Nairobi's Informal Settlements (issue brief, 2026)",
+   "url": "https://doi.org/10.46830/wriib.25.00024",
+   "terms": "Names Mathare, Mukuru and Kibera among the hardest hit in 2024; surveyed Mukuru Viwandani."
+  }
+ },
+ "city_hazard": {
+  "wet_pct": 23.3,
+  "deep_pct": 7.4
+ },
+ "areas": [
+  {
+   "name": "Babadogo",
+   "osm": "node/6346946572",
+   "latitude": -1.24616,
+   "longitude": 36.88265,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 22.8,
+    "deep_pct": 16.7
+   }
+  },
+  {
+   "name": "Buruburu",
+   "osm": "node/10271071031",
+   "latitude": -1.28619,
+   "longitude": 36.87743,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 12.1,
+    "deep_pct": 0.3
+   }
+  },
+  {
+   "name": "CBD",
+   "osm": "way/239077078",
+   "latitude": -1.28635,
+   "longitude": 36.82129,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 22.1,
+    "deep_pct": 5.4
+   }
+  },
+  {
+   "name": "Dandora",
+   "osm": "node/11399884319",
+   "latitude": -1.24491,
+   "longitude": 36.90608,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 24.1,
+    "deep_pct": 13.0
+   }
+  },
+  {
+   "name": "Doonholm",
+   "osm": "node/482840488",
+   "latitude": -1.29923,
+   "longitude": 36.88869,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 23.6,
+    "deep_pct": 7.0
+   }
+  },
+  {
+   "name": "Githurai",
+   "osm": "node/6346946570",
+   "latitude": -1.20284,
+   "longitude": 36.91686,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 35.2,
+    "deep_pct": 26.0
+   }
+  },
+  {
+   "name": "Industrial Area",
+   "osm": "node/11786766111",
+   "latitude": -1.30454,
+   "longitude": 36.84419,
+   "evidence": [
+    "desinventar",
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 17.9,
+    "deep_pct": 7.4
+   }
+  },
+  {
+   "name": "Kahawa West",
+   "osm": "node/2393090122",
+   "latitude": -1.18631,
+   "longitude": 36.90681,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 25.8,
+    "deep_pct": 11.8
+   }
+  },
+  {
+   "name": "Kamulu",
+   "osm": "node/709781398",
+   "latitude": -1.28251,
+   "longitude": 37.0637,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": null
+  },
+  {
+   "name": "Kariobangi",
+   "osm": "node/11665246126",
+   "latitude": -1.25909,
+   "longitude": 36.88191,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 21.3,
+    "deep_pct": 15.3
+   }
+  },
+  {
+   "name": "Kawangware",
+   "osm": "node/1744672553",
+   "latitude": -1.27846,
+   "longitude": 36.75164,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 22.7,
+    "deep_pct": 9.6
+   }
+  },
+  {
+   "name": "Kayole",
+   "osm": "node/544377110",
+   "latitude": -1.26675,
+   "longitude": 36.91936,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 26.5,
+    "deep_pct": 9.6
+   }
+  },
+  {
+   "name": "Kibera",
+   "osm": "node/11007276790",
+   "latitude": -1.31133,
+   "longitude": 36.789,
+   "evidence": [
+    "space4all_report",
+    "wri_brief",
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 17.5,
+    "deep_pct": 2.5
+   }
+  },
+  {
+   "name": "Kilimani",
+   "osm": "node/13566448227",
+   "latitude": -1.29601,
+   "longitude": 36.78178,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 15.6,
+    "deep_pct": 6.7
+   }
+  },
+  {
+   "name": "Kitisuru",
+   "osm": "node/10815798768",
+   "latitude": -1.24038,
+   "longitude": 36.77103,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 32.9,
+    "deep_pct": 16.3
+   }
+  },
+  {
+   "name": "Korogocho",
+   "osm": "node/289911998",
+   "latitude": -1.25175,
+   "longitude": 36.89031,
+   "evidence": [
+    "space4all_report",
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 32.7,
+    "deep_pct": 20.5
+   }
+  },
+  {
+   "name": "Makadara",
+   "osm": "node/10236095025",
+   "latitude": -1.29522,
+   "longitude": 36.87186,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 20.6,
+    "deep_pct": 0.0
+   }
+  },
+  {
+   "name": "Mathare",
+   "osm": "node/11155030940",
+   "latitude": -1.26501,
+   "longitude": 36.84957,
+   "evidence": [
+    "space4all_report",
+    "wri_brief"
+   ],
+   "hazard": {
+    "wet_pct": 21.5,
+    "deep_pct": 13.0
+   }
+  },
+  {
+   "name": "Mirema",
+   "osm": "node/11413149039",
+   "latitude": -1.20886,
+   "longitude": 36.88756,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 21.0,
+    "deep_pct": 8.0
+   }
+  },
+  {
+   "name": "Mukuru Kwa Njenga",
+   "osm": "node/10271095499",
+   "latitude": -1.31963,
+   "longitude": 36.88653,
+   "evidence": [
+    "wri_brief"
+   ],
+   "hazard": {
+    "wet_pct": 13.7,
+    "deep_pct": 1.0
+   }
+  },
+  {
+   "name": "Mukuru Kwa Ruben",
+   "osm": "node/10271125000",
+   "latitude": -1.31675,
+   "longitude": 36.8826,
+   "evidence": [
+    "wri_brief",
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 27.0,
+    "deep_pct": 8.6
+   }
+  },
+  {
+   "name": "New Njiru Town",
+   "osm": "node/709781365",
+   "latitude": -1.25024,
+   "longitude": 36.94,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 26.7,
+    "deep_pct": 19.4
+   }
+  },
+  {
+   "name": "Ruai",
+   "osm": "node/529361284",
+   "latitude": -1.269,
+   "longitude": 36.99155,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 4.1,
+    "deep_pct": 0.3
+   }
+  },
+  {
+   "name": "Ruaraka",
+   "osm": "node/289911540",
+   "latitude": -1.24299,
+   "longitude": 36.87562,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 22.1,
+    "deep_pct": 16.0
+   }
+  },
+  {
+   "name": "Soweto",
+   "osm": "node/482840484",
+   "latitude": -1.28447,
+   "longitude": 36.91344,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 26.9,
+    "deep_pct": 12.3
+   }
+  },
+  {
+   "name": "Tassia",
+   "osm": "node/10236114247",
+   "latitude": -1.30705,
+   "longitude": 36.8986,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 23.6,
+    "deep_pct": 8.2
+   }
+  },
+  {
+   "name": "Uthiru",
+   "osm": "node/11913250811",
+   "latitude": -1.26068,
+   "longitude": 36.71121,
+   "evidence": [
+    "desinventar"
+   ],
+   "hazard": {
+    "wet_pct": 8.7,
+    "deep_pct": 0.6
+   }
+  },
+  {
+   "name": "Viwandani",
+   "osm": "node/11407583745",
+   "latitude": -1.30315,
+   "longitude": 36.87088,
+   "evidence": [
+    "wri_brief",
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 19.7,
+    "deep_pct": 0.0
+   }
+  },
+  {
+   "name": "Zimmerman",
+   "osm": "node/4194272132",
+   "latitude": -1.21067,
+   "longitude": 36.89631,
+   "evidence": [
+    "unosat"
+   ],
+   "hazard": {
+    "wet_pct": 23.1,
+    "deep_pct": 6.4
+   }
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 // Builds the AI chat's system prompt from backend/data/your-flood-data.csv when present,
-// otherwise from the same sample zones the map shows, labelled as sample data.
+// otherwise from the same flood areas the map shows, with their evidence and sources.
 
-const { SAMPLE_ZONES, loadDatasetZones } = require('./lib/zones');
+const { BUILT_IN_ZONES, FLOOD_AREAS, loadDatasetZones } = require('./lib/zones');
 const { DATASET_PATH } = require('./lib/dataset');
 const { wasMatched, recordsForZone, satelliteForZone } = require('./lib/flood-records');
 
@@ -9,14 +9,15 @@ const { wasMatched, recordsForZone, satelliteForZone } = require('./lib/flood-re
 const asDataText = text => String(text).replace(/[\r\n<>]+/g, ' ').trim();
 
 const IMPACTS = {
-  deaths: 'deaths', missing: 'missing', injured: 'injured', people_affected: 'people affected',
-  evacuated: 'evacuated', houses_destroyed: 'houses destroyed', houses_damaged: 'houses damaged',
+  deaths: ['death', 'deaths'], missing: ['missing', 'missing'], injured: ['injured', 'injured'],
+  people_affected: ['person affected', 'people affected'], evacuated: ['evacuated', 'evacuated'],
+  houses_destroyed: ['house destroyed', 'houses destroyed'], houses_damaged: ['house damaged', 'houses damaged'],
 };
 
 function describeRecords(name) {
   if (!wasMatched(name)) return 'recorded floods: not checked for this area';
   const reports = recordsForZone(name).map(r => {
-    const impacts = Object.entries(IMPACTS).filter(([key]) => r.impacts[key]).map(([key, label]) => `${r.impacts[key]} ${label}`);
+    const impacts = Object.entries(IMPACTS).filter(([key]) => r.impacts[key]).map(([key, [one, many]]) => `${r.impacts[key]} ${r.impacts[key] === 1 ? one : many}`);
     const place = r.place && r.place.toLowerCase() !== name.toLowerCase() ? ` at ${asDataText(r.place)}` : '';
     return `${r.date}${place}${impacts.length ? ` (${impacts.join(', ')})` : ''}`;
   });
@@ -31,19 +32,34 @@ function describeRecords(name) {
   ].filter(Boolean).join('; ');
 }
 
-function describeArea(a) {
+const NAMED_BY = {
+  space4all_report: "named among the most affected in SPACE4ALL's 2024 flood report",
+  wri_brief: "named among the hardest hit in WRI's 2026 brief",
+};
+
+function describeDatasetArea(a) {
   const threshold = a.threshold != null ? `flood threshold ${a.threshold} mm/hr` : 'no flood threshold recorded';
   const notes = a.notes ? ` (${asDataText(a.notes)})` : '';
   return `- ${asDataText(a.name)}: ${a.risk.toUpperCase()} risk, ${threshold}${notes}; ${describeRecords(a.name)}`;
 }
 
+function describeBuiltInArea(a) {
+  const km = FLOOD_AREAS.radius_m / 1000;
+  const city = FLOOD_AREAS.city_hazard;
+  const named = a.evidence.filter(e => NAMED_BY[e]).map(e => NAMED_BY[e]);
+  const model = a.hazard
+    ? `modelled flooding within ${km} km: ${a.hazard.wet_pct}% of land deeper than 10 cm, ${a.hazard.deep_pct}% deeper than 1 m (city: ${city.wet_pct}% and ${city.deep_pct}%)`
+    : 'outside the flood model';
+  return `- ${a.name}: ${[...named, model].join('; ')}; ${describeRecords(a.name)}`;
+}
+
 function buildSystemPrompt() {
   const datasetAreas = loadDatasetZones();
   if (datasetAreas) console.log(`AI chat: loaded ${datasetAreas.length} areas from ${DATASET_PATH}`);
-  const areaList = (datasetAreas ?? SAMPLE_ZONES).map(describeArea);
+  const areaList = datasetAreas ? datasetAreas.map(describeDatasetArea) : BUILT_IN_ZONES.map(describeBuiltInArea);
   const sourceRule = datasetAreas
     ? 'The area list comes from the FloodSafe flood dataset.'
-    : 'The risk levels and thresholds in the area list are sample data with no verified source. If you rely on one, say it is a rough sample figure. The recorded floods are real.';
+    : "Each area is listed because a report, a DesInventar flood report or the 1 May 2024 satellite image shows flooding there; it is not a complete list of places that flood. Modelled flooding comes from SPACE4ALL's simplified model of one long storm, which ignores drains, so settlements such as Kibera can flood more than it shows. No area has a recorded rain threshold or risk level, so don't invent one.";
 
   return `You are FloodSafe's flood risk assistant for Nairobi, Kenya.
 You help residents decide whether it is safe to travel during heavy rainfall.

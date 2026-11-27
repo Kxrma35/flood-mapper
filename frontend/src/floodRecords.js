@@ -24,7 +24,10 @@ export function satelliteSummary(zone, radiusKm) {
   if (!zone) return null;
   if (!zone.analysed) return 'Outside the area UNOSAT analysed.';
   if (zone.flooded_pct > 0) {
-    return `About ${zone.flooded_pct}% of the area within ${radiusKm} km was under water, with ${zone.affected_structures.toLocaleString()} structures marked affected.`;
+    const structures = zone.affected_structures
+      ? `with ${zone.affected_structures.toLocaleString()} structures marked affected`
+      : 'with no structures marked affected';
+    return `About ${zone.flooded_pct}% of the area within ${radiusKm} km was under water, ${structures}.`;
   }
   const cloud = zone.cloud_pct >= 10 ? `, but ${Math.round(zone.cloud_pct)}% of it was hidden by cloud` : '';
   return `No standing water seen within ${radiusKm} km${cloud}.`;

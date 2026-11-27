@@ -1,7 +1,7 @@
 # fetch_history.py
 # Downloads hourly weather history (Open-Meteo archive, the same source as nairobi_raw.csv)
-# for every zone's location, so the model can be trained on each area's own rainfall.
-# Zones that fall in the same model grid cell (about 8 km) share one download.
+# at the points in training_points.json, which spread across Nairobi. Points that fall in the
+# same weather grid cell (about 8 km) share one download.
 #
 #   python ml/fetch_history.py            -> ml/zone_history.csv.gz
 import json
@@ -14,7 +14,9 @@ import urllib.request
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ZONES_PATH = os.path.join(HERE, "..", "backend", "data", "sample-zones.json")
+# The points the committed zone_history.csv.gz was downloaded for. The model has no location
+# inputs, so these only need to sample Nairobi's weather; they are not the map's areas.
+ZONES_PATH = os.path.join(HERE, "training_points.json")
 OUTPUT_PATH = os.path.join(HERE, "zone_history.csv.gz")
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 START, END = "2018-01-01", "2024-12-31"

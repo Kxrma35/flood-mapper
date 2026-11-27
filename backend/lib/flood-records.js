@@ -1,10 +1,10 @@
-// Real flood records for the sample zones, built by ml/build_flood_records.py from
+// Real flood records for FloodSafe's flood areas, built by ml/build_flood_data.py from
 // DesInventar reports and UNOSAT's 1 May 2024 satellite analysis. Both are incomplete,
 // so a zone with no record is not a zone that hasn't flooded.
 
 const FLOOD_RECORDS = require('../data/flood-records.json');
 
-// Records were matched against the sample zones only; other areas have no answer either way.
+// Records were matched against FloodSafe's flood areas only; other areas have no answer either way.
 const wasMatched = name => Object.hasOwn(FLOOD_RECORDS.satellite_2024.zones, name);
 const recordsForZone = name => FLOOD_RECORDS.records.filter(r => r.zone === name);
 const satelliteForZone = name => FLOOD_RECORDS.satellite_2024.zones[name] ?? null;

@@ -9,7 +9,7 @@
   "unosat": {
    "name": "UNITAR-UNOSAT, Flood impact analysis in Nairobi, Kenya, as of 1 May 2024 (preliminary, not field-validated)",
    "url": "https://data.humdata.org/dataset/70148c8d-4d8a-4e70-8c03-c9bb8370cfb7",
-   "terms": "CC BY-SA. The per-zone figures here are derived from it and shared under the same licence."
+   "terms": "CC BY-SA. The per-area figures here are derived from it and shared under the same licence."
   }
  },
  "near_zone_m": 1000,
@@ -17,7 +17,7 @@
   {
    "date": "2002-05-14",
    "place": "Buruburu",
-   "zone": "Eastlands",
+   "zone": "Buruburu",
    "cause": "Flood",
    "impacts": {
     "deaths": 3
@@ -43,7 +43,7 @@
   {
    "date": "2002-05-14",
    "place": "Kilimani",
-   "zone": null,
+   "zone": "Kilimani",
    "cause": "Flood",
    "impacts": {
     "deaths": 1
@@ -69,7 +69,7 @@
   {
    "date": "2009-12-22",
    "place": "Makadara",
-   "zone": null,
+   "zone": "Makadara",
    "cause": "El Niño",
    "impacts": {
     "houses_damaged": 33
@@ -121,7 +121,7 @@
   {
    "date": "2010-07-01",
    "place": "Kawangware",
-   "zone": null,
+   "zone": "Kawangware",
    "cause": "Rain",
    "impacts": {},
    "description": null,
@@ -132,7 +132,7 @@
   {
    "date": "2010-07-01",
    "place": "Uthiru",
-   "zone": null,
+   "zone": "Uthiru",
    "cause": "Rain",
    "impacts": {},
    "description": null,
@@ -143,7 +143,7 @@
   {
    "date": "2010-07-01",
    "place": "Kitisuru",
-   "zone": null,
+   "zone": "Kitisuru",
    "cause": "Rain",
    "impacts": {},
    "description": null,
@@ -165,7 +165,7 @@
   {
    "date": "2012-05-04",
    "place": "Ruai",
-   "zone": null,
+   "zone": "Ruai",
    "cause": "Rain",
    "impacts": {
     "people_affected": 100
@@ -191,7 +191,7 @@
   {
    "date": "2013-03-13",
    "place": "Kawangware",
-   "zone": null,
+   "zone": "Kawangware",
    "cause": "Rain",
    "impacts": {
     "deaths": 1
@@ -231,7 +231,7 @@
   {
    "date": "2013-03-29",
    "place": "Kawangware",
-   "zone": null,
+   "zone": "Kawangware",
    "cause": "Rain",
    "impacts": {
     "deaths": 1
@@ -299,7 +299,7 @@
   {
    "date": "2015-10-15",
    "place": "Industrial area",
-   "zone": null,
+   "zone": "Industrial Area",
    "cause": "Rain",
    "impacts": {},
    "description": "Over 1500 students sent home.",
@@ -336,7 +336,7 @@
   {
    "date": "2015-12-13",
    "place": "Ruai",
-   "zone": null,
+   "zone": "Ruai",
    "cause": "Flood",
    "impacts": {
     "deaths": 1
@@ -379,45 +379,184 @@
   "date": "2024-05-01",
   "source": "unosat",
   "zones": {
-   "Mathare Valley": {
+   "Babadogo": {
     "analysed": true,
     "analysed_pct": 100.0,
-    "cloud_pct": 49.1,
+    "cloud_pct": 0.1,
+    "flooded_pct": 3.3,
+    "affected_structures": 251
+   },
+   "Buruburu": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 52.8,
     "flooded_pct": 0.0,
     "affected_structures": 0
+   },
+   "CBD": {
+    "analysed": false
+   },
+   "Dandora": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 2.0,
+    "affected_structures": 55
+   },
+   "Doonholm": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 20.6,
+    "flooded_pct": 2.7,
+    "affected_structures": 141
+   },
+   "Githurai": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 14.0,
+    "affected_structures": 464
+   },
+   "Industrial Area": {
+    "analysed": true,
+    "analysed_pct": 84.1,
+    "cloud_pct": 49.9,
+    "flooded_pct": 0.0,
+    "affected_structures": 10
+   },
+   "Kahawa West": {
+    "analysed": true,
+    "analysed_pct": 86.4,
+    "cloud_pct": 0.0,
+    "flooded_pct": 4.4,
+    "affected_structures": 512
+   },
+   "Kamulu": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 7.1,
+    "flooded_pct": 6.6,
+    "affected_structures": 0
+   },
+   "Kariobangi": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 2.8,
+    "flooded_pct": 1.6,
+    "affected_structures": 263
+   },
+   "Kawangware": {
+    "analysed": false
+   },
+   "Kayole": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 3.7,
+    "affected_structures": 351
    },
    "Kibera": {
     "analysed": false
    },
-   "Mukuru kwa Njenga": {
-    "analysed": true,
-    "analysed_pct": 78.9,
-    "cloud_pct": 0.2,
-    "flooded_pct": 1.9,
-    "affected_structures": 421
+   "Kilimani": {
+    "analysed": false
    },
-   "Pangani": {
-    "analysed": true,
-    "analysed_pct": 76.9,
-    "cloud_pct": 0.5,
-    "flooded_pct": 0.0,
-    "affected_structures": 0
+   "Kitisuru": {
+    "analysed": false
    },
-   "Eastlands": {
+   "Korogocho": {
     "analysed": true,
     "analysed_pct": 100.0,
-    "cloud_pct": 57.4,
+    "cloud_pct": 0.0,
+    "flooded_pct": 3.1,
+    "affected_structures": 423
+   },
+   "Makadara": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 100.0,
     "flooded_pct": 0.0,
     "affected_structures": 0
    },
-   "Upper Hill": {
+   "Mathare": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 25.7,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Mirema": {
+    "analysed": true,
+    "analysed_pct": 96.0,
+    "cloud_pct": 3.5,
+    "flooded_pct": 2.3,
+    "affected_structures": 57
+   },
+   "Mukuru Kwa Njenga": {
+    "analysed": true,
+    "analysed_pct": 67.6,
+    "cloud_pct": 0.0,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Mukuru Kwa Ruben": {
+    "analysed": true,
+    "analysed_pct": 86.1,
+    "cloud_pct": 0.0,
+    "flooded_pct": 2.5,
+    "affected_structures": 323
+   },
+   "New Njiru Town": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 1.7,
+    "flooded_pct": 1.8,
+    "affected_structures": 147
+   },
+   "Ruai": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 0.0,
+    "affected_structures": 0
+   },
+   "Ruaraka": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 12.7,
+    "flooded_pct": 4.2,
+    "affected_structures": 98
+   },
+   "Soweto": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 5.2,
+    "affected_structures": 217
+   },
+   "Tassia": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 0.0,
+    "flooded_pct": 2.3,
+    "affected_structures": 82
+   },
+   "Uthiru": {
     "analysed": false
    },
-   "Westlands": {
-    "analysed": false
+   "Viwandani": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 81.6,
+    "flooded_pct": 0.1,
+    "affected_structures": 45
    },
-   "CBD": {
-    "analysed": false
+   "Zimmerman": {
+    "analysed": true,
+    "analysed_pct": 100.0,
+    "cloud_pct": 6.6,
+    "flooded_pct": 3.1,
+    "affected_structures": 128
    }
   }
  }
