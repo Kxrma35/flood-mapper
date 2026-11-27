@@ -2,11 +2,12 @@
 // Top-level layout: header, sidebar (route check + AI chat + rain indicator),
 // map panel, zone detail overlay, and live alerts ticker.
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import { buildAlerts } from './alerts';
+import { useLiveData } from './useLiveData';
 
 const ALERT_STATUS = {
   high:    { label: 'HIGH RISK',     color: '#E24B4A', icon: 'ti-alert-triangle' },
@@ -19,6 +20,7 @@ const ALERT_STATUS = {
 const QUICK_CHECKS = ['Westlands', 'Eastlands', 'Kibera', 'Buruburu'];
 
 const API = import.meta.env.VITE_API_URL || '';
+const REFRESH_MS = 5 * 60 * 1000;
 
 function buildFallbackGeoJSON() {
   const zones = [
@@ -59,18 +61,16 @@ export default function App() {
   const [floodZones, setFloodZones] = useState(null);
   const [zonesAreSample, setZonesAreSample] = useState(false);
   const [selectedZone, setSelectedZone] = useState(null);
-  const [weather, setWeather] = useState(null);
-  const [weatherError, setWeatherError] = useState(false);
   const [alertIndex, setAlertIndex] = useState(0);
   const [alertVisible, setAlertVisible] = useState(true);
   const [time, setTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState('route'); // 'route' | 'chat'
 
-  const handleWeather = useCallback(data => {
-    setWeather(data);
-    setWeatherError(false);
-  }, []);
-  const handleWeatherError = useCallback(() => setWeatherError(true), []);
+  const { data: weather, error: weatherError } = useLiveData(`${API}/api/weather`, REFRESH_MS);
+  const { data: predictionData } = useLiveData(`${API}/api/predict`, REFRESH_MS);
+  const predictions = Array.isArray(predictionData)
+    ? predictionData.filter(p => p.flood_probability != null)
+    : [];
 
   // Clock
   useEffect(() => {
@@ -102,33 +102,14 @@ export default function App() {
       });
   }, []);
 
-  const [predictions, setPredictions] = useState([]);
-
-  useEffect(() => {
-    const fetchPredictions = () => {
-      fetch(`${API}/api/predict`)
-        .then(r => r.json().then(body => {
-          if (!r.ok || !Array.isArray(body)) throw new Error(body?.error || `HTTP ${r.status}`);
-          return body;
-        }))
-        .then(results => setPredictions(results.filter(p => p.flood_probability != null)))
-        .catch(err => {
-          console.error('Prediction failed:', err.message);
-          setPredictions([]);
-        });
-    };
-    fetchPredictions();
-    const t = setInterval(fetchPredictions, 10 * 60 * 1000); // every 10 min
-    return () => clearInterval(t);
-  }, []);
-
   const precipMm = weather?.current_mm_per_hour ?? null;
   const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
   const alerts = buildAlerts({
     weather,
     weatherError,
     predictions,
-    zones: floodZones?.features?.map(f => f.properties) ?? [],
+    zones: floodZones ? floodZones.features.map(f => f.properties) : null,
+    zonesAreSample,
   });
   const alertStatus = ALERT_STATUS[alerts.level];
   const currentAlert = alerts.messages[alertIndex % alerts.messages.length];
@@ -244,7 +225,7 @@ export default function App() {
 
                 {/* Rainfall */}
                 <div style={s.sectionLabel}>Rainfall Intensity</div>
-                <RainIndicator onWeatherUpdate={handleWeather} onWeatherError={handleWeatherError} />
+                <RainIndicator weather={weather} error={weatherError} />
 
                 {/* Zone counter */}
                 <div style={{ ...s.sectionLabel, marginTop: 16 }}>Zone Risk Levels</div>

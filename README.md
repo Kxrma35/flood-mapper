@@ -83,6 +83,7 @@ flood-mapper/
 │   ├── src/
 │   │   ├── App.jsx           Top-level layout, state, route/zone logic
 │   │   ├── alerts.js         Builds the alert ticker from live weather, model and zone data
+│   │   ├── useLiveData.js    Polls /api/weather and /api/predict for the whole app
 │   │   ├── components/
 │   │   │   ├── MapView.jsx        Leaflet map, flood zone rendering
 │   │   │   ├── AIChatPanel.jsx    AI assistant chat interface

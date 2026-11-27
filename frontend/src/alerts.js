@@ -11,34 +11,35 @@ function listNames(zones) {
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
 }
 
-export function buildAlerts({ weather, weatherError, predictions, zones }) {
+export function buildAlerts({ weather, weatherError, predictions, zones, zonesAreSample }) {
   if (weatherError) {
     return {
       level: 'unknown',
       messages: [{ level: 'unknown', text: 'Live weather is unavailable, so flood risk cannot be checked right now.' }, DISCLAIMER],
     };
   }
-  if (!weather) {
-    return { level: 'unknown', messages: [{ level: 'unknown', text: 'Checking live weather...' }] };
+  if (!weather || !zones) {
+    return { level: 'unknown', messages: [{ level: 'unknown', text: 'Checking live weather...' }, DISCLAIMER] };
   }
 
   const messages = [];
   const rain = weather.current_mm_per_hour ?? 0;
   const forecast = weather.forecast ?? [];
   const asOf = forecast[0] ? ` as of ${clockTime(forecast[0].time)}` : '';
+  const threshold = zonesAreSample ? 'sample flood threshold' : 'flood threshold';
 
   const top = predictions.reduce((max, p) => (!max || p.flood_probability > max.flood_probability ? p : max), null);
   if (top && top.risk_level !== 'LOW') {
     const high = top.risk_level === 'HIGH';
     messages.push({
       level: high ? 'high' : 'medium',
-      text: `${high ? 'High' : 'Elevated'} flood risk${asOf}: the model puts it at ${Math.round(top.flood_probability * 100)}% from central Nairobi rainfall of ${mmPerHour(rain)} now, ${weather.rolling?.rain_3h_mm ?? 0} mm over 3 hours and ${weather.rolling?.rain_24h_mm ?? 0} mm over 24 hours.`,
+      text: `${high ? 'High' : 'Elevated'} flood risk: the model puts it at ${Math.round(top.flood_probability * 100)}% for central Nairobi.`,
     });
   }
 
   const overThreshold = zones.filter(z => rain >= z.rain_threshold);
   if (overThreshold.length) {
-    messages.push({ level: 'high', text: `Rain of ${mmPerHour(rain)} is at or above the flood threshold for ${listNames(overThreshold)}.` });
+    messages.push({ level: 'high', text: `Rain of ${mmPerHour(rain)}${asOf} is at or above the ${threshold} for ${listNames(overThreshold)}.` });
   }
 
   const upcoming = forecast.slice(1);
@@ -46,7 +47,7 @@ export function buildAlerts({ weather, weatherError, predictions, zones }) {
   if (peak) {
     const comingOver = zones.filter(z => peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
     messages.push(comingOver.length
-      ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the flood threshold for ${listNames(comingOver)}.` }
+      ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the ${threshold} for ${listNames(comingOver)}.` }
       : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}.` });
   } else if (upcoming.length) {
     messages.push({ level: 'info', text: `No rain forecast for the next ${upcoming.length} hours.` });
