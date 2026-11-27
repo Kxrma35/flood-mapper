@@ -138,6 +138,8 @@ flood-mapper/
     ├── training_points.json    The 8 points zone_history.csv.gz was downloaded for
     ├── check_records.py        Tests the model against the recorded floods
     ├── record_check.csv        Its latest results
+    ├── threshold_tradeoff.py   Compares candidate flood rules against the recorded floods
+    ├── threshold_tradeoff.csv  Its results for all 120 rules tried
     ├── generate_data.py        Generates synthetic data (not used by train_model.py)
     ├── predict_server.py       Flask server, exposes POST /predict
     └── model.joblib            Trained model, scaler and feature list in one bundle (generated)
@@ -234,15 +236,27 @@ python ml/build_flood_data.py
 
 | Recorded floods | Model reached HIGH | How often it does in any window that long |
 |---|---|---|
-| DesInventar, 11 dates in 2002–2015 | 0 of 11 | 0.7% of 2-day windows in 2002–2015 |
-| UNOSAT, 26 April–1 May 2024 | Yes (99.9%) | 9.6% of 6-day windows in 2024 |
-| News reports, 4 floods in 2018–2026 | 0 of 4 | 7.1% of 3-day windows in 2018–2026 |
+| DesInventar, 11 dates in 2002–2015 | 0 of 11 | 0.9% of 2-day windows in 2002–2015 |
+| UNOSAT, 26 April–1 May 2024 | Yes (99.9%) | 9.8% of 6-day windows in 2024 |
+| News reports, 4 floods in 2018–2026 | 1 of 4 (6–7 March 2026) | 7.9% of 3-day windows in 2018–2026 |
 
-**The model warns for 1 of the 16 recorded floods.**
+**The model warns for 2 of the 16 recorded floods.**
 
-- **April–May 2024 (caught).** These floods came from days of moderate rain: several days of 10–29 mm, but never more than 9 mm in an hour or 35 mm in 24 hours. The original rule (more than 10 mm in an hour, 25 mm in 3 hours or 50 mm in 24 hours) never fired, and the first model stayed at 0% throughout. Rain built up to 65 mm over 72 hours, higher than in about 94% of 6-day windows in 2018–2024; no other window length (1, 3, 24 hours or 7 days) set the event apart as well. So the label now also counts **more than 60 mm in 72 hours**, close to the 99th percentile of 72-hour totals in 2018–2024, and the model reaches 99.9% during the event. The price is more HIGH days: somewhere in Nairobi on 4.1% of days in 2018–2024 (from 1 to 39 days a year, about 15 on average), against 2.4% before. On their own, the 72-hour threshold flags 2.7% of days; the strictest 7-day threshold that still catches the event would flag 4.6%. This rule was set with only one recent recorded flood to check it against, so treat it as a first step, not a validated threshold.
+- **April–May 2024 (caught).** These floods came from days of moderate rain: several days of 10–29 mm, but never more than 9 mm in an hour or 35 mm in 24 hours. The original rule (more than 10 mm in an hour, 25 mm in 3 hours or 50 mm in 24 hours) never fired, and the first model stayed at 0% throughout. Rain built up to 65 mm over 72 hours, higher than in about 94% of 6-day windows in 2018–2024; no other window length (1, 3, 24 hours or 7 days) set the event apart as well. So the label also counts rain over 72 hours, first at more than 60 mm (close to the 99th percentile of 72-hour totals in 2018–2024), now **more than 55 mm** (see below), and the model reaches 99.9% during the event.
 - **The 11 DesInventar dates, 2002–2015 (missed).** The older weather data is much smoother: 12 hours above 10 mm/hr in the four cells over 2002–2015, against 95 over 2018–2024, and no recorded date had more than 54 mm in 72 hours. On four of them the heaviest hour was 0.3 mm or less, which may also mean those reports were dated some days after the flood. Thresholds in millimetres from today's sharper data don't carry over to that period.
-- **The 4 news-reported floods, 2018–2026 (missed).** Even in today's data, the weather the model sees stayed below its rule on all four. On the night of 6–7 March 2026, when about 23 people died, the heaviest hour was 6.5 mm and 3 days of rain reached 58 mm, just under the 60 mm rule. On 24 April 2024 it was 8.6 mm in an hour and 29 mm over 3 days. Gridded weather data smooths out the heavy local downpours that flood the city: FloodList reported 59 mm of rain in Nairobi in the 24 hours to 15 March 2018, while the grid shows 23 mm. A lower threshold would catch more of these floods but warn on more ordinary wet days. That trade-off needs deciding with these records, not guessing.
+- **The 4 news-reported floods, 2018–2026 (1 caught).** On the night of 6–7 March 2026, when about 23 people died, the heaviest hour was 6.5 mm and 3 days of rain reached 58 mm: just under the first 60 mm rule, and caught by the 55 mm rule. The other three stay below any reasonable rule in the weather the model sees. On 24 April 2024 it was 8.6 mm in an hour and 29 mm over 3 days, and on 14 March 2026 only 3.9 mm in 24 hours. Gridded weather data smooths out the heavy local downpours that flood the city: FloodList reported 59 mm of rain in Nairobi in the 24 hours to 15 March 2018, while the grid shows 23 mm.
+
+### Choosing the thresholds
+
+`python ml/threshold_tradeoff.py` tries 120 combinations of the four thresholds (1 hour 8 or 10 mm, 3 hours 20 or 25 mm, 24 hours 20–50 mm, 72 hours 30–60 mm) against the recorded floods. For each, it counts the floods caught and how often the rule would warn somewhere in Nairobi in 2018–2026, in days and in "spells" of back-to-back warning days. The 5 floods since 2018 count most, because the older weather data is too smooth to judge by. Results are in `ml/threshold_tradeoff.csv`:
+
+| Rule (changes from 10 / 25 / 50 / 60 mm) | Recent floods caught | Warning days a year | Warning spells a year |
+|---|---|---|---|
+| None | 1 of 5 | 13.4 | 6.4 |
+| **72 hours 55 mm (chosen)** | **2 of 5** | **16.3** | **6.6** |
+| 72 hours 55 mm and 24 hours 20 mm | 4 of 5 | 28.8 | 9.9 |
+
+Lowering the 72-hour threshold to 55 mm catches the deadly 6–7 March 2026 floods (58 mm) for about 3 more warning days a year and almost no extra spells. A 20 mm 24-hour threshold would also catch 15 March 2018 and 24 April 2024, but only just (24 April's 24-hour total was 20.4 mm), and it nearly doubles the warning days, so it wasn't adopted. No rule catches 14 March 2026. These thresholds were chosen using the same 5 floods they are scored on, so they will do somewhat worse on future floods. Warnings on days with no recorded flood are not all false alarms, because the records are incomplete.
 
 The app's disclaimer and the AI chat's prompt state this result, so a LOW estimate is never presented as "safe".
 
@@ -468,7 +482,7 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 
 ## Known Limitations and Next Steps
 
-- **Rule-based labels, and the model misses most real floods.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, 50mm in 24 hours, or 60mm in 72 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect, but tested on 16 real recorded floods it warned for 1 (see [Testing the model](#testing-the-model-against-them)). The 72-hour part was added to catch the April 2024 floods. Gridded weather also underestimates the local downpours behind many floods, so even a well-chosen rule will miss some. More dated flood records are needed to set thresholds with confidence, and before labels can come from real floods instead of a rule.
+- **Rule-based labels, and the model misses most real floods.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, 50mm in 24 hours, or 55mm in 72 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect, but tested on 16 real recorded floods it warned for 2 (see [Testing the model](#testing-the-model-against-them)). The 72-hour threshold was chosen against 5 recent floods (see [Choosing the thresholds](#choosing-the-thresholds)). Gridded weather also underestimates the local downpours behind many floods, so even a well-chosen rule will miss some. More dated flood records are needed to set thresholds with confidence, and before labels can come from real floods instead of a rule.
 - **Areas differ only through their own weather.** Each area is predicted from the weather at its location, but the weather model works in grid cells of about 8 km, so nearby areas share the same reading. Because the label is the same rainfall rule everywhere, the model can't learn that one area floods more easily than another, so latitude and longitude are not model inputs. Capturing that would need many more dated flood records per area than exist so far.
 - **Flood areas have no risk level or rain threshold.** No source gives them (see [Flood Areas and Records](#flood-areas-and-records)), so alerts and the safer route depend on the flood model alone. If you have an area dataset of your own with levels and thresholds, put it at `backend/data/your-flood-data.csv` (columns `area_name`, `latitude`, `longitude`, `flood_frequency` or `flood_score`, `rain_threshold_mm`, `notes`). The AI chat reads it on startup, and `node backend/convert-csv.js` generates the map's `frontend/public/flood-zones.geojson` from it. Both read it through `backend/lib/dataset.js`, so they agree: a row with no recognisable level is shown as unknown, a missing threshold is shown as not recorded (never guessed), and rows without valid coordinates are left off the map. This replaces the flood areas on the map and in the chat; `python ml/build_flood_data.py` brings them back.
 - **Routes are OpenStreetMap-based, without live traffic.** Travel times are estimates from road speeds, not live conditions, unlike Uber or Google Maps. Pick places from the suggestions: typed text that isn't picked falls back to the single best match, which for names like "JKIA" or "Buruburu" is often the wrong place (the result says so). Place points come from OpenStreetMap and can be a little off (the airport's point is at the edge of the airport, not the terminal). Each suggestion lookup uses two OpenRouteService geocoding calls; results are cached for 24 hours and `/api/places` allows 60 lookups per minute per IP. OpenRouteService's free plan has daily quotas, and `/api/route` allows 20 checks per minute per IP.
