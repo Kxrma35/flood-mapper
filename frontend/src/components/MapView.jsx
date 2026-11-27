@@ -31,6 +31,25 @@ const BASEMAP = CARTO_KEY
       className: 'osm-dark',
     };
 
+// Built as an element with textContent so zone names from a dataset are never parsed as HTML.
+function zoneLabel(name, color, pulsing) {
+  const el = document.createElement('div');
+  el.textContent = String(name).toUpperCase();
+  Object.assign(el.style, {
+    background: color,
+    color: '#fff',
+    padding: '2px 6px',
+    borderRadius: '3px',
+    fontSize: '10px',
+    fontWeight: '700',
+    whiteSpace: 'nowrap',
+    fontFamily: "'IBM Plex Mono', monospace",
+    boxShadow: '0 1px 3px rgba(0,0,0,0.6)',
+    animation: pulsing ? 'pulse 1s infinite alternate' : '',
+  });
+  return el;
+}
+
 export default function MapView({ origin, destination, floodZones, onZoneClick, precipMm, predictions = [] }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -88,17 +107,10 @@ export default function MapView({ origin, destination, floodZones, onZoneClick, 
         },
       }).addTo(map);
 
-      // Zone name label
       const center = L.geoJSON(feature).getBounds().getCenter();
       const label = L.divIcon({
         className: '',
-        html: `<div style="
-          background:${color};color:#fff;padding:2px 6px;
-          border-radius:3px;font-size:10px;font-weight:700;
-          white-space:nowrap;font-family:'IBM Plex Mono',monospace;
-          box-shadow:0 1px 3px rgba(0,0,0,0.6);
-          ${isActivelyFlooding ? 'animation:pulse 1s infinite alternate;' : ''}
-        ">${name.toUpperCase()}</div>`,
+        html: zoneLabel(name, color, isActivelyFlooding),
         iconAnchor: [0, 0],
       });
       const marker = L.marker(center, { icon: label }).addTo(map);
