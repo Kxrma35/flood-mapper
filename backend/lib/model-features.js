@@ -1,6 +1,6 @@
 const { rainOverLast } = require('./open-meteo');
 
-// Must match FEATURES in ml/train_model.py, including how each one is derived. Missing
+// Must match FEATURES in ml/features.py, including how each one is derived. Missing
 // readings stay null; the ML service rejects them rather than predicting from guesses.
 function modelFeatures(hourly, index, currentTime) {
   const [year, month, day] = currentTime.slice(0, 10).split('-').map(Number);
@@ -16,6 +16,7 @@ function modelFeatures(hourly, index, currentTime) {
     rain_6h_mm:       rainOverLast(hourly, index, 6),
     rain_24h_mm:      rainOverLast(hourly, index, 24),
     rain_48h_mm:      rainOverLast(hourly, index, 48),
+    rain_72h_mm:      rainOverLast(hourly, index, 72),
     humidity,
     wind_speed:       hourly.windspeed_10m[index] ?? null,
     temperature:      hourly.temperature_2m[index] ?? null,

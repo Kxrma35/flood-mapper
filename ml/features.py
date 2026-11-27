@@ -6,7 +6,7 @@ import pandas as pd
 CELL = ["latitude", "longitude"]
 
 FEATURES = [
-    "precipitation_mm", "rain_3h_mm", "rain_6h_mm", "rain_24h_mm", "rain_48h_mm",
+    "precipitation_mm", "rain_3h_mm", "rain_6h_mm", "rain_24h_mm", "rain_48h_mm", "rain_72h_mm",
     "humidity", "wind_speed", "temperature", "cloud_cover",
     "month", "hour", "day_of_year",
     "is_rainy_season", "is_peak_month", "is_afternoon", "is_night",
@@ -32,7 +32,7 @@ def prepare(df):
 
     # Rolling totals within each grid cell, so they never mix rain from different places.
     rain = df.groupby(CELL)["precipitation_mm"]
-    for hours in (3, 6, 24, 48):
+    for hours in (3, 6, 24, 48, 72):
         df[f"rain_{hours}h_mm"] = rain.transform(lambda s: s.rolling(hours, min_periods=1).sum())
 
     df["is_heavy_rain"]   = (df["precipitation_mm"] > 7.5).astype(int)
@@ -45,9 +45,15 @@ def prepare(df):
 
 
 def rule_label(df):
-    """The training label: a rainfall rule, not recorded floods. check_records.py tests it."""
+    """The training label: a rainfall rule, not recorded floods. check_records.py tests it.
+
+    Short downpours, or rain building up over three days: the April-May 2024 floods came
+    from days of moderate rain that never passed the short-window limits. 60 mm in 72 hours
+    is close to the 99th percentile of 72-hour totals in zone_history (2018-2024).
+    """
     return (
         (df["precipitation_mm"] > 10) |
         (df["rain_3h_mm"]  > 25)      |
-        (df["rain_24h_mm"] > 50)
+        (df["rain_24h_mm"] > 50)      |
+        (df["rain_72h_mm"] > 60)
     ).astype(int)

@@ -46,6 +46,7 @@ router.get('/', async (req, res) => {
           rain_mm_per_hr: features.precipitation_mm,
           rain_3h_mm: features.rain_3h_mm,
           rain_24h_mm: features.rain_24h_mm,
+          rain_72h_mm: features.rain_72h_mm,
           ...forecastPeak(hourly, index),
           flood_probability: null,
           risk_level: null,

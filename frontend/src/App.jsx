@@ -306,6 +306,10 @@ export default function App() {
                   <i className="ti ti-cloud-rain" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
                   <span>Rain here now: <span style={{ color: '#e8e8e8' }}>{selectedRain != null ? `${selectedRain.toFixed(1)}mm/hr` : 'unknown'}</span></span>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-calendar" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
+                  <span>Rain over the last 3 days: <span style={{ color: '#e8e8e8' }}>{selectedReport?.rain_72h_mm != null ? `${selectedReport.rain_72h_mm.toFixed(1)}mm` : 'unknown'}</span></span>
+                </div>
                 {selectedZone.residents > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <i className="ti ti-users" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />

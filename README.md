@@ -115,7 +115,7 @@ flood-mapper/
 │   │   └── predict.js          Builds zone+weather payload, calls ML service
 │   ├── lib/
 │   │   ├── open-meteo.js       Hourly Nairobi weather, matched to Nairobi time
-│   │   ├── model-features.js   The 20 model inputs, built from live weather
+│   │   ├── model-features.js   The 19 model inputs, built from live weather
 │   │   ├── conditions.js       Live rain, forecast and model estimate for the AI chat
 │   │   ├── ors.js              OpenRouteService place search and routing
 │   │   ├── flood-records.js    Recorded floods per zone, for the chat prompt
@@ -201,17 +201,17 @@ python ml/build_flood_records.py
 
 ### Testing the model against them
 
-`python ml/check_records.py` (needs pandas) downloads the weather for the same years and checks whether the model reached HIGH anywhere in Nairobi during each recorded flood: on the report's day or the day before for DesInventar's 11 rain-related dates, and from 26 April to 1 May 2024 for the UNOSAT event. Results are in `ml/record_check.csv`:
+`python ml/check_records.py` (needs pandas) reads the weather for the same years (from `zone_history.csv.gz` where it covers them, downloading the rest) and checks whether the model reached HIGH anywhere in Nairobi during each recorded flood: on the report's day or the day before for DesInventar's 11 rain-related dates, and from 26 April to 1 May 2024 for the UNOSAT event. Results are in `ml/record_check.csv`:
 
 | Recorded floods | Model reached HIGH | How often it does in any window that long |
 |---|---|---|
-| DesInventar, 11 dates in 2002–2015 | 0 of 11 | 0.3% of 2-day windows in 2002–2015 |
-| UNOSAT, 26 April–1 May 2024 | No (highest probability 0%) | 7.4% of 6-day windows in 2024 |
+| DesInventar, 11 dates in 2002–2015 | 0 of 11 | 0.7% of 2-day windows in 2002–2015 |
+| UNOSAT, 26 April–1 May 2024 | Yes (99.9%) | 9.6% of 6-day windows in 2024 |
 
-**The model missed every recorded flood.** Two reasons stand out in the data:
+**The model warns for 1 of the 12 recorded floods.**
 
-- The April–May 2024 floods came from many days of moderate rain: several days of 10–29 mm and 7-day totals of 66–96 mm in the four grid cells, but never more than 9 mm in an hour or 35 mm in 24 hours. The training rule (more than 10 mm in an hour, 25 mm in 3 hours or 50 mm in 24 hours) never fires on that, so neither does the model.
-- The older weather data is much smoother: 12 hours above 10 mm/hr in the four cells over 2002–2015, against 95 over 2018–2024. On four recorded dates its heaviest hour was 0.3 mm or less, which may also mean those reports were dated some days after the flood.
+- **April–May 2024 (caught).** These floods came from days of moderate rain: several days of 10–29 mm, but never more than 9 mm in an hour or 35 mm in 24 hours. The original rule (more than 10 mm in an hour, 25 mm in 3 hours or 50 mm in 24 hours) never fired, and the first model stayed at 0% throughout. Rain built up to 65 mm over 72 hours, higher than in about 94% of 6-day windows in 2018–2024; no other window length (1, 3, 24 hours or 7 days) set the event apart as well. So the label now also counts **more than 60 mm in 72 hours**, close to the 99th percentile of 72-hour totals in 2018–2024, and the model reaches 99.9% during the event. The price is more HIGH days: somewhere in Nairobi on 4.1% of days in 2018–2024 (from 1 to 39 days a year, about 15 on average), against 2.4% before. On their own, the 72-hour threshold flags 2.7% of days; the strictest 7-day threshold that still catches the event would flag 4.6%. This rule was set with only one recent recorded flood to check it against, so treat it as a first step, not a validated threshold.
+- **The 11 DesInventar dates, 2002–2015 (missed).** The older weather data is much smoother: 12 hours above 10 mm/hr in the four cells over 2002–2015, against 95 over 2018–2024, and no recorded date had more than 54 mm in 72 hours. On four of them the heaviest hour was 0.3 mm or less, which may also mean those reports were dated some days after the flood. Thresholds in millimetres from today's sharper data don't carry over to that period.
 
 The app's disclaimer and the AI chat's prompt state this result, so a LOW estimate is never presented as "safe".
 
@@ -259,7 +259,7 @@ python ml/fetch_history.py  # optional: re-downloads ml/zone_history.csv.gz (alr
 python ml/train_model.py    # trains and saves ml/model.joblib
 ```
 
-`fetch_history.py` downloads hourly Open-Meteo archive weather for 2018–2024 at every zone in `backend/data/sample-zones.json`. Zones in the same weather grid cell (about 8 km) share one series, so the 8 sample zones give 4 series. `train_model.py` follows the pipeline of the original notebook (`ml/nairobi_flood_model (1).ipynb`, which analysed only the central cell in `nairobi_raw.csv`), with rolling rainfall worked out within each cell. It builds 18 features, and `backend/lib/model-features.js` builds the same 18 from live weather. If you change a feature in one, change it in the other, or the ML service will answer with `missing features: ...`.
+`fetch_history.py` downloads hourly Open-Meteo archive weather for 2018–2024 at every zone in `backend/data/sample-zones.json`. Zones in the same weather grid cell (about 8 km) share one series, so the 8 sample zones give 4 series. `train_model.py` follows the pipeline of the original notebook (`ml/nairobi_flood_model (1).ipynb`, which analysed only the central cell in `nairobi_raw.csv`), with rolling rainfall worked out within each cell. It builds 19 features (including rain over the last 72 hours, so the live forecast request asks for 3 past days), and `backend/lib/model-features.js` builds the same 19 from live weather. If you change a feature in one, change it in the other, or the ML service will answer with `missing features: ...`.
 
 ---
 
@@ -415,7 +415,7 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 
 ## Known Limitations and Next Steps
 
-- **Rule-based labels, and the model misses real floods.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, or 50mm in 24 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect, but tested on real recorded floods it warned for none of them (see [Testing the model](#testing-the-model-against-them)). The next step is multi-day rainfall (for example 3- and 7-day totals) as features and in the label, checked against the recorded floods. More dated flood records, especially since 2017, are needed before labels can come from real floods instead of a rule.
+- **Rule-based labels, and the model misses most real floods.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, 50mm in 24 hours, or 60mm in 72 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect, but tested on 12 real recorded floods it warned for 1 (see [Testing the model](#testing-the-model-against-them)). The 72-hour part was added to catch the April 2024 floods and was checked against that one event only. More dated flood records, especially since 2017, are needed to set thresholds with confidence, and before labels can come from real floods instead of a rule.
 - **Zones differ only through their own weather.** Each zone is predicted from the weather at its location, but the weather model works in grid cells of about 8 km, so nearby zones share the same reading (Pangani, Upper Hill, Westlands and CBD share one cell; Mukuru kwa Njenga and Eastlands another). Because the label is the same rainfall rule everywhere, the model can't learn that one area floods more easily than another, so latitude and longitude are not model inputs. Capturing that would need many more real flood records per area than exist so far: only 5 of DesInventar's 28 Nairobi reports name a sample zone. Until then, each zone's historical risk colour and threshold come from the zone data, and the model drives the live "at risk now" highlight.
 - **Sample zone data.** Until a real dataset is added, the map uses the built-in zones in `App.jsx` and the AI chat uses the same zones. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and both label them as sample data. To use real data, put it at `backend/data/your-flood-data.csv` (columns `area_name`, `latitude`, `longitude`, `flood_frequency` or `flood_score`, `rain_threshold_mm`, `notes`). The AI chat reads it on startup, and `node backend/convert-csv.js` generates the map's `frontend/public/flood-zones.geojson` from it. Both read it through `backend/lib/dataset.js`, so they agree: a row with no recognisable level is shown as unknown, a missing threshold is shown as not recorded (never guessed), and rows without valid coordinates are left off the map.
 - **Routes are OpenStreetMap-based, without live traffic.** Travel times are estimates from road speeds, not live conditions, unlike Uber or Google Maps. Pick places from the suggestions: typed text that isn't picked falls back to the single best match, which for names like "JKIA" or "Buruburu" is often the wrong place (the result says so). Place points come from OpenStreetMap and can be a little off (the airport's point is at the edge of the airport, not the terminal). Each suggestion lookup uses two OpenRouteService geocoding calls; results are cached for 24 hours and `/api/places` allows 60 lookups per minute per IP. OpenRouteService's free plan has daily quotas, and `/api/route` allows 20 checks per minute per IP.

@@ -6,6 +6,7 @@
 #   - UNOSAT's April-May 2024 event: from the event code's date to the satellite image.
 # Each result is compared with how often the model reaches HIGH in any window of the same
 # length in the same years, so a hit can be told apart from a model that is always HIGH.
+# Years already in zone_history.csv.gz are read from it; only the rest are downloaded.
 #
 #   python ml/check_records.py   -> ml/record_check.csv and a printed summary
 import json
@@ -18,6 +19,7 @@ from features import prepare
 from fetch_history import download
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+HISTORY_PATH = os.path.join(HERE, "zone_history.csv.gz")
 RECORDS_PATH = os.path.join(HERE, "..", "backend", "data", "flood-records.json")
 OUTPUT_PATH = os.path.join(HERE, "record_check.csv")
 RAIN_CAUSES = {"Rain", "Flood", "El Niño"}  # DesInventar's own cause field
@@ -44,13 +46,23 @@ def flood_windows(data):
     return windows
 
 
+def history(first_year, last_year):
+    saved = pd.read_csv(HISTORY_PATH)
+    saved_years = set(pd.to_datetime(saved["datetime"]).dt.year)
+    missing = [y for y in range(first_year, last_year + 1) if y not in saved_years]
+    parts = [saved[pd.to_datetime(saved["datetime"]).dt.year.between(first_year, last_year)]]
+    if missing:
+        parts.append(download(f"{min(missing)}-01-01", f"{max(missing)}-12-31"))
+    return pd.concat(parts, ignore_index=True)
+
+
 def main():
     with open(RECORDS_PATH) as f:
         windows = flood_windows(json.load(f))
     first, last = min(w["start"] for w in windows), max(w["end"] for w in windows)
 
     bundle = joblib.load(os.path.join(HERE, "model.joblib"))
-    df = prepare(download(f"{first.year}-01-01", f"{last.year}-12-31"))
+    df = prepare(history(first.year, last.year))
     df["probability"] = bundle["model"].predict_proba(bundle["scaler"].transform(df[bundle["features"]].values))[:, 1]
 
     # City-wide: the highest value in any of Nairobi's grid cells on each day.
@@ -58,6 +70,7 @@ def main():
         probability=("probability", "max"),
         rain_mm_per_hr=("precipitation_mm", "max"),
         rain_24h_mm=("rain_24h_mm", "max"),
+        rain_72h_mm=("rain_72h_mm", "max"),
     )
 
     rows = []
@@ -70,6 +83,7 @@ def main():
             "what": w["what"],
             "max_rain_mm_per_hr": round(span["rain_mm_per_hr"].max(), 1),
             "max_rain_24h_mm": round(span["rain_24h_mm"].max(), 1),
+            "max_rain_72h_mm": round(span["rain_72h_mm"].max(), 1),
             "max_probability": round(span["probability"].max(), 3),
             "model_high": bool(span["probability"].max() > HIGH),
         })
