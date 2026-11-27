@@ -7,9 +7,16 @@ const path = require('path');
 const DATASET_PATH = path.join(__dirname, '..', 'data', 'your-flood-data.csv');
 const RISK_LEVELS = ['high', 'medium', 'low'];
 
+// Whole-field numbers only: "12abc" or an empty cell is missing, not 12 or 0.
 function toNumber(value) {
-  const n = parseFloat(value);
+  const text = String(value ?? '').trim();
+  if (text === '') return null;
+  const n = Number(text);
   return Number.isFinite(n) ? n : null;
+}
+
+function inRange(n, min, max) {
+  return n != null && n >= min && n <= max ? n : null;
 }
 
 function riskLevel(row) {
@@ -33,8 +40,8 @@ function readDataset() {
       const threshold = toNumber(row.rain_threshold_mm);
       return {
         name: row.area_name,
-        latitude: toNumber(row.latitude),
-        longitude: toNumber(row.longitude),
+        latitude: inRange(toNumber(row.latitude), -90, 90),
+        longitude: inRange(toNumber(row.longitude), -180, 180),
         risk: riskLevel(row),
         threshold: threshold > 0 ? threshold : null,
         notes: row.notes || '',

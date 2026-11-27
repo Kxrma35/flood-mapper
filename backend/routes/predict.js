@@ -21,10 +21,17 @@ router.get('/', async (req, res) => {
   try {
     const { hourly, index, currentTime } = await fetchNairobiHourly();
     const features = modelFeatures(hourly, index, currentTime);
+    if (Object.values(features).some(value => value == null)) {
+      return res.status(503).json({ error: 'Flood model unavailable: some live weather readings are missing.' });
+    }
     const zones = ZONES.map(z => ({ ...z, ...features }));
 
     const mlRes = await axios.post(`${ML_URL}/predict`, { zones }, { timeout: 15000 });
-    res.json(mlRes.data);
+    const predictions = mlRes.data.filter(p => p.flood_probability != null);
+    if (!predictions.length) {
+      return res.status(502).json({ error: 'Flood model returned no predictions.' });
+    }
+    res.json(predictions);
   } catch (err) {
     const status = err.response?.status === 503 ? 503 : 500;
     res.status(status).json({ error: err.response?.data?.error || err.message });

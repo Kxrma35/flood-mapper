@@ -55,23 +55,35 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
     const comingOver = zones.filter(z => z.rain_threshold != null && peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
     messages.push(comingOver.length
       ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the ${threshold} for ${listNames(comingOver)}.` }
-      : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}.` });
+      : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}${forecastGaps ? ' in the hours available' : ''}.` });
   } else if (upcoming.length && !forecastGaps) {
     messages.push({ level: 'info', text: `No rain forecast for the next ${upcoming.length} hours.` });
   }
   if (forecastGaps) {
-    messages.push({ level: 'info', text: 'Some forecast hours are missing from the weather data.' });
+    messages.push({ level: 'info', text: 'Some forecast hours are missing, so later hours can\'t be fully checked.' });
   }
 
   if (!predictions.length) {
     messages.push({ level: 'info', text: 'Flood model unavailable, so alerts use rain thresholds only.' });
   }
 
+  const unassessed = zones.filter(z => z.rain_threshold == null);
+  if (unassessed.length) {
+    const subject = unassessed.length > 1 ? 'they are' : 'it is';
+    messages.push({
+      level: 'info',
+      text: predictions.length
+        ? `No flood threshold is recorded for ${listNames(unassessed)}, so ${subject} covered only by the model estimate.`
+        : `No flood threshold is recorded for ${listNames(unassessed)} and the model is unavailable, so ${subject} not being checked.`,
+    });
+  }
+  const partial = forecastGaps || (unassessed.length > 0 && !predictions.length);
+
   const level = messages.some(m => m.level === 'high') ? 'high'
     : messages.some(m => m.level === 'medium') ? 'medium'
     : 'none';
   if (level === 'none') {
-    messages.unshift({ level: 'none', text: `No flood alerts${asOf}. Rain now: ${mmPerHour(rain)}.` });
+    messages.unshift({ level: 'none', text: `No flood alerts${partial ? ' for what can be checked' : ''}${asOf}. Rain now: ${mmPerHour(rain)}.` });
   }
 
   return { level, messages: [...messages, DISCLAIMER] };
