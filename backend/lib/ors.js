@@ -1,7 +1,8 @@
 // OpenRouteService client: place search and road routing. The key stays on the server.
 const axios = require('axios');
 
-const ORS_URL = process.env.ORS_URL || 'https://api.openrouteservice.org';
+// api.openrouteservice.org was retired on 2026-11-24 in favour of api.heigit.org.
+const ORS_URL = process.env.ORS_URL || 'https://api.heigit.org';
 const NAIROBI = { lat: -1.286, lon: 36.817 };
 const SEARCH_RADIUS_KM = 60;
 const PLACE_CACHE_MS = 24 * 60 * 60 * 1000;
@@ -46,7 +47,7 @@ async function findPlace(text) {
 
   let data;
   try {
-    ({ data } = await client().get('/geocode/search', {
+    ({ data } = await client().get('/pelias/v1/search', {
       params: {
         text,
         size: 1,
@@ -85,7 +86,7 @@ async function findRoute(from, to, mode, avoidPolygons) {
 
   let data;
   try {
-    ({ data } = await client().post(`/v2/directions/${PROFILES[mode]}/geojson`, body));
+    ({ data } = await client().post(`/openrouteservice/v2/directions/${PROFILES[mode]}/geojson`, body));
   } catch (err) {
     throw toRoutingError(err);
   }
