@@ -7,6 +7,7 @@ const CENTRAL_NAIROBI = { name: 'Central Nairobi', latitude: -1.286, longitude: 
 const FORECAST_HOURS = 5;
 
 async function modelEstimate(features) {
+  if (Object.values(features).some(value => value == null)) return null;
   try {
     const { data } = await axios.post(
       `${ML_URL}/predict`,
@@ -31,15 +32,16 @@ async function currentConditions() {
     rain24h: rainOverLast(hourly, index, 24),
     forecast: hourly.time
       .slice(index + 1, index + 1 + FORECAST_HOURS)
-      .map((time, k) => ({ time, mm: hourly.precipitation[index + 1 + k] ?? 0 })),
+      .map((time, k) => ({ time, mm: hourly.precipitation[index + 1 + k] ?? null })),
     model: await modelEstimate(features),
   };
 }
 
 function describeConditions(c) {
   const clock = t => t.slice(11, 16);
+  const amount = (mm, unit) => (mm == null ? 'not available' : `${mm.toFixed(1)} ${unit}`);
   const forecast = c.forecast.length
-    ? c.forecast.map(f => `${clock(f.time)} ${f.mm.toFixed(1)}`).join(', ')
+    ? c.forecast.map(f => `${clock(f.time)} ${f.mm == null ? 'n/a' : f.mm.toFixed(1)}`).join(', ')
     : 'not available';
   const model = c.model
     ? `${Math.round(c.model.flood_probability * 100)}% flood probability (${c.model.risk_level})`
@@ -47,8 +49,8 @@ function describeConditions(c) {
 
   return [
     `Live conditions for central Nairobi at ${clock(c.time)} EAT (Open-Meteo):`,
-    `- Rain now: ${c.rainNow.toFixed(1)} mm/hr`,
-    `- Rain over the last 3 hours: ${c.rain3h.toFixed(1)} mm; last 24 hours: ${c.rain24h.toFixed(1)} mm`,
+    `- Rain now: ${amount(c.rainNow, 'mm/hr')}`,
+    `- Rain over the last 3 hours: ${amount(c.rain3h, 'mm')}; last 24 hours: ${amount(c.rain24h, 'mm')}`,
     `- Forecast for the next ${FORECAST_HOURS} hours (mm/hr): ${forecast}`,
     `- FloodSafe model: ${model}`,
   ].join('\n');

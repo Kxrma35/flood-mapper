@@ -308,9 +308,10 @@ OPENAI_API_KEY=sk-...
 ML_URL=https://your-ml-service.onrender.com
 FRONTEND_URL=https://your-frontend.vercel.app
 PORT=3001
+TRUST_PROXY=1
 ```
 
-`ML_URL` must point to wherever you deployed the Flask service in the previous step, not `localhost`.
+`ML_URL` must point to wherever you deployed the Flask service in the previous step, not `localhost`. `TRUST_PROXY` is the number of proxies in front of the backend (1 on Render and Railway). Without it, the AI chat's rate limit sees the host's proxy instead of each visitor, so all visitors would share one limit.
 
 ### Deploying the Frontend (React/Vite)
 
@@ -352,8 +353,8 @@ Many free tiers (Render's free Web Services in particular) spin the service down
 
 - **Rule-based labels.** The weather history is real, but the `flood` label is a rule (more than 10mm in an hour, 25mm in 3 hours, or 50mm in 24 hours), not recorded floods. The model learns that rule, which is why its test scores are near perfect. Real Nairobi flood records would make the probabilities mean something more.
 - **One location, so no per-zone prediction.** All training rows come from one point (-1.286, 36.817), so latitude and longitude have no effect and every zone gets the same probability. The map keeps each zone's historical risk colour and uses the model for the live "active" highlight. Per-zone predictions need per-zone weather and training data from more than one point.
-- **Sample zone data.** Until a real dataset is added, the map uses the built-in zones in `App.jsx` and the AI chat uses the same zones. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and both label them as sample data. To use real data, put it at `backend/data/your-flood-data.csv` (columns `area_name`, `latitude`, `longitude`, `flood_frequency` or `flood_score`, `rain_threshold_mm`, `notes`). The AI chat reads it on startup, and `node backend/convert-csv.js` generates the map's `frontend/public/flood-zones.geojson` from it.
-- **No authentication or rate limiting** on the backend API. Acceptable for a demo or hackathon context; would need addressing before any public production use, particularly on `/api/ask` given OpenAI usage costs.
+- **Sample zone data.** Until a real dataset is added, the map uses the built-in zones in `App.jsx` and the AI chat uses the same zones. Their risk levels, thresholds, resident counts and notes are placeholders with no verified source, and both label them as sample data. To use real data, put it at `backend/data/your-flood-data.csv` (columns `area_name`, `latitude`, `longitude`, `flood_frequency` or `flood_score`, `rain_threshold_mm`, `notes`). The AI chat reads it on startup, and `node backend/convert-csv.js` generates the map's `frontend/public/flood-zones.geojson` from it. Both read it through `backend/lib/dataset.js`, so they agree: a row with no recognisable level is shown as unknown, a missing threshold is shown as not recorded (never guessed), and rows without valid coordinates are left off the map.
+- **Limited abuse protection.** `/api/ask` allows 10 questions per minute per IP address, and the backend shares one Open-Meteo response across all routes for 5 minutes. There is no authentication. People behind one shared IP (common on mobile networks) share the chat limit, and a determined client with many IPs can still drive OpenAI costs, so watch usage before a public launch. The limit counters and the weather cache live in memory in each backend process; if you run several instances, each keeps its own, and a shared store such as Redis would be needed to enforce one limit across them.
 
 ---
 

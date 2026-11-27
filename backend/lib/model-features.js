@@ -1,13 +1,14 @@
 const { rainOverLast } = require('./open-meteo');
 
-// Must match FEATURES in ml/train_model.py, including how each one is derived.
+// Must match FEATURES in ml/train_model.py, including how each one is derived. Missing
+// readings stay null; the ML service rejects them rather than predicting from guesses.
 function modelFeatures(hourly, index, currentTime) {
   const [year, month, day] = currentTime.slice(0, 10).split('-').map(Number);
   const hour = Number(currentTime.slice(11, 13));
   const dayOfYear = (Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 1)) / 86400000 + 1;
 
-  const precipitation = hourly.precipitation[index] ?? 0;
-  const humidity      = hourly.relativehumidity_2m[index] ?? 60;
+  const precipitation = hourly.precipitation[index] ?? null;
+  const humidity      = hourly.relativehumidity_2m[index] ?? null;
 
   return {
     precipitation_mm: precipitation,
@@ -16,9 +17,9 @@ function modelFeatures(hourly, index, currentTime) {
     rain_24h_mm:      rainOverLast(hourly, index, 24),
     rain_48h_mm:      rainOverLast(hourly, index, 48),
     humidity,
-    wind_speed:       hourly.windspeed_10m[index] ?? 0,
-    temperature:      hourly.temperature_2m[index] ?? 20,
-    cloud_cover:      hourly.cloudcover[index] ?? 0,
+    wind_speed:       hourly.windspeed_10m[index] ?? null,
+    temperature:      hourly.temperature_2m[index] ?? null,
+    cloud_cover:      hourly.cloudcover[index] ?? null,
     month,
     hour,
     day_of_year:      dayOfYear,
@@ -26,8 +27,8 @@ function modelFeatures(hourly, index, currentTime) {
     is_peak_month:    [4, 11].includes(month) ? 1 : 0,
     is_afternoon:     hour >= 14 && hour <= 17 ? 1 : 0,
     is_night:         hour <= 5 ? 1 : 0,
-    is_heavy_rain:    precipitation > 7.5 ? 1 : 0,
-    humidity_rain:    humidity * precipitation / 100,
+    is_heavy_rain:    precipitation == null ? null : precipitation > 7.5 ? 1 : 0,
+    humidity_rain:    precipitation == null || humidity == null ? null : humidity * precipitation / 100,
   };
 }
 
