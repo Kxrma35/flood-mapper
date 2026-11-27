@@ -49,7 +49,7 @@ function zoneLabel(name, color, pulsing) {
   return el;
 }
 
-export default function MapView({ floodZones, onZoneClick, isAtRisk, routePlan, selectedRoute, onSelectRoute }) {
+export default function MapView({ floodZones, onZoneClick, isAtRisk, routePlan, selectedRoute, onSelectRoute, hazardLayer }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeLayersRef = useRef([]);
@@ -74,6 +74,20 @@ export default function MapView({ floodZones, onZoneClick, isAtRisk, routePlan, 
     L.control.zoom({ position: 'topright' }).addTo(map);
     mapInstanceRef.current = map;
   }, []);
+
+  // The modelled flood-depth image, under the zones and routes.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !hazardLayer) return;
+    const layer = L.imageOverlay(hazardLayer.url, hazardLayer.bounds, {
+      className: 'hazard-layer',
+      attribution: 'Flood depth: SPACE4ALL (CC BY 4.0)',
+    }).addTo(map);
+    layer.bringToBack();
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [hazardLayer]);
 
   // Draw flood zones whenever geojson data arrives
   useEffect(() => {

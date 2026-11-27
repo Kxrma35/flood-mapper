@@ -9,6 +9,7 @@ import RainIndicator from './components/RainIndicator';
 import RoutePanel from './components/RoutePanel';
 import ZoneHistory from './components/ZoneHistory';
 import ZoneEvidence from './components/ZoneEvidence';
+import HazardToggle from './components/HazardToggle';
 import { isZoneAtRiskNow, isZoneRiskKnown, zoneRainNow } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
@@ -34,6 +35,7 @@ export default function App() {
   const [chatTrip, setChatTrip] = useState({ origin: '', destination: '' });
   const [floodZones, setFloodZones] = useState(null);
   const [zonesError, setZonesError] = useState(false);
+  const [showHazard, setShowHazard] = useState(false);
   const [selectedZone, setSelectedZone] = useState(null);
   const [alertIndex, setAlertIndex] = useState(0);
   const [alertVisible, setAlertVisible] = useState(true);
@@ -261,7 +263,11 @@ export default function App() {
             routePlan={routePlan}
             selectedRoute={selectedRoute}
             onSelectRoute={setSelectedRoute}
+            hazardLayer={showHazard ? floodZones?.floodsafe?.hazard_layer : null}
           />
+          {floodZones?.floodsafe?.hazard_layer && (
+            <HazardToggle shown={showHazard} onToggle={setShowHazard} source={floodZones.floodsafe.sources?.space4all_model} />
+          )}
 
           {/* Zone detail overlay */}
           {selectedZone && (

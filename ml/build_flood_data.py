@@ -15,7 +15,7 @@
 #   pip install pyogrio shapely pandas   # only needed for this script
 #   python ml/build_flood_data.py
 #     -> backend/data/flood-areas.json, backend/data/flood-records.json,
-#        frontend/public/flood-zones.geojson
+#        frontend/public/flood-zones.geojson, frontend/public/flood-hazard.png
 import json
 import math
 import os
@@ -24,8 +24,10 @@ import tempfile
 import time
 import urllib.parse
 import urllib.request
+import struct
 import xml.etree.ElementTree as ET
 import zipfile
+import zlib
 from datetime import date
 
 import numpy as np
@@ -40,6 +42,7 @@ ROOT = os.path.join(HERE, "..")
 AREAS_PATH = os.path.join(ROOT, "backend", "data", "flood-areas.json")
 RECORDS_PATH = os.path.join(ROOT, "backend", "data", "flood-records.json")
 GEOJSON_PATH = os.path.join(ROOT, "frontend", "public", "flood-zones.geojson")
+HAZARD_PNG_PATH = os.path.join(ROOT, "frontend", "public", "flood-hazard.png")
 
 DESINVENTAR_ZIP = "https://www.desinventar.net/DesInventar/download/DI_export_ken.zip"
 UNOSAT_ZIP = "https://unosat.org/static/unosat_filesystem/3834/FL20240426KEN_gdb.zip"
@@ -239,6 +242,42 @@ def hazard_near(cells, place):
             "deep_pct": round(100 * (inside.flood_hazard == 2).mean(), 1)}
 
 
+# The map's flood-depth layer: transparent outside the model, a faint tint where it has under
+# 10 cm (so "dry" and "not modelled" look different), then 10 cm-1 m and over 1 m.
+HAZARD_PALETTE = [(0, 0, 0, 0), (255, 255, 255, 26), (79, 195, 247, 140), (13, 71, 161, 215)]
+HAZARD_PNG_SCALE = 2  # pixels per cell edge; the grid's columns shift a little from row to row
+
+
+def hazard_png(cells, path):
+    """Draws every cell's own box onto an image and returns the image's [[south, west], [north, east]]."""
+    south, west, north, east = cells.lat_min.min(), cells.lon_min.min(), cells.lat_max.max(), cells.lon_max.max()
+    dy = (cells.lat_max - cells.lat_min).median() / HAZARD_PNG_SCALE
+    dx = (cells.lon_max - cells.lon_min).median() / HAZARD_PNG_SCALE
+    height, width = int(round((north - south) / dy)), int(round((east - west) / dx))
+    pixels = np.zeros((height, width), dtype=np.uint8)
+    for level in (0, 1, 2):  # deeper cells drawn last, so they win where boxes overlap
+        for c in cells[cells.flood_hazard == level].itertuples():
+            top, bottom = int(round((north - c.lat_max) / dy)), int(round((north - c.lat_min) / dy))
+            left, right = int(round((c.lon_min - west) / dx)), int(round((c.lon_max - west) / dx))
+            pixels[top:bottom, left:right] = level + 1
+
+    def chunk(tag, data):
+        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data))
+    rows = b"".join(b"\x00" + row.tobytes() for row in pixels)
+    png = (b"\x89PNG\r\n\x1a\n"
+           + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 3, 0, 0, 0))
+           + chunk(b"PLTE", bytes(v for colour in HAZARD_PALETTE for v in colour[:3]))
+           + chunk(b"tRNS", bytes(colour[3] for colour in HAZARD_PALETTE))
+           + chunk(b"IDAT", zlib.compress(rows, 9))
+           + chunk(b"IEND", b""))
+    fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
+    with os.fdopen(fd, "wb") as f:
+        f.write(png)
+    os.chmod(tmp_path, 0o644)
+    os.replace(tmp_path, path)
+    return [[round(south, 6), round(west, 6)], [round(north, 6), round(east, 6)]]
+
+
 def write_json(path, data, indent=1):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
@@ -284,6 +323,8 @@ def main():
             "deep_pct": round(100 * (cells.flood_hazard == 2).mean(), 1)}
 
     built = date.today().isoformat()
+    os.makedirs(os.path.dirname(HAZARD_PNG_PATH), exist_ok=True)
+    hazard_bounds = hazard_png(cells, HAZARD_PNG_PATH)
     write_json(AREAS_PATH, {"built": built, "radius_m": RADIUS_M, "sources": AREA_SOURCES,
                             "city_hazard": city, "areas": areas})
     write_json(RECORDS_PATH, {
@@ -298,6 +339,7 @@ def main():
     write_json(GEOJSON_PATH, {
         "type": "FeatureCollection",
         "floodsafe": {"built": built, "radius_m": RADIUS_M, "city_hazard": city,
+                      "hazard_layer": {"url": "/flood-hazard.png", "bounds": hazard_bounds},
                       "sources": {**AREA_SOURCES, **RECORD_SOURCES}},
         "features": [{
             "type": "Feature",
