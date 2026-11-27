@@ -3,6 +3,8 @@ const DISCLAIMER = {
   text: 'FloodSafe estimates from Open-Meteo weather data, not official warnings. Follow the Kenya Meteorological Department and Nairobi County for official alerts.',
 };
 
+import { zoneRainNow } from './risk';
+
 const mmPerHour = mm => `${mm.toFixed(1)} mm/hr`;
 const clockTime = isoTime => isoTime.slice(11, 16);
 
@@ -43,16 +45,19 @@ export function buildAlerts({ weather, weatherError, predictions, zones, zonesAr
     });
   }
 
-  const overThreshold = zones.filter(z => z.rain_threshold != null && rain >= z.rain_threshold);
+  // Each zone is compared with the rain at its own location where that is known.
+  const localRain = z => zoneRainNow(z, predictions, rain);
+  const overThreshold = zones.filter(z => z.rain_threshold != null && localRain(z) >= z.rain_threshold);
   if (overThreshold.length) {
-    messages.push({ level: 'high', text: `Rain of ${mmPerHour(rain)}${asOf} is at or above the ${threshold} for ${listNames(overThreshold)}.` });
+    const withRain = overThreshold.map(z => ({ name: `${z.name} (${mmPerHour(localRain(z))})` }));
+    messages.push({ level: 'high', text: `Rain${asOf} is at or above the ${threshold} for ${listNames(withRain)}.` });
   }
 
   const upcoming = forecast.slice(1);
   const forecastGaps = upcoming.some(f => f.precipitation == null);
   const peak = upcoming.reduce((max, f) => (f.precipitation != null && f.precipitation > (max?.precipitation ?? 0) ? f : max), null);
   if (peak) {
-    const comingOver = zones.filter(z => z.rain_threshold != null && peak.precipitation >= z.rain_threshold && rain < z.rain_threshold);
+    const comingOver = zones.filter(z => z.rain_threshold != null && peak.precipitation >= z.rain_threshold && localRain(z) < z.rain_threshold);
     messages.push(comingOver.length
       ? { level: 'medium', text: `Forecast: ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}, enough to pass the ${threshold} for ${listNames(comingOver)}.` }
       : { level: 'info', text: `Forecast: up to ${mmPerHour(peak.precipitation)} around ${clockTime(peak.time)}${forecastGaps ? ' in the hours available' : ''}.` });

@@ -3,17 +3,29 @@ const axios = require('axios');
 const NAIROBI = { latitude: -1.286, longitude: 36.817 };
 const CACHE_MS = 5 * 60 * 1000;
 
-let cache = null;
+const cache = new Map();
 
-// One forecast response is shared by /api/weather, /api/predict and the chat for a few
-// minutes, so traffic doesn't multiply calls to Open-Meteo. Failed requests aren't kept.
-function fetchForecast() {
-  if (cache && Date.now() - cache.at < CACHE_MS) return cache.promise;
+// Responses are shared for a few minutes by every route asking for the same locations, so
+// traffic doesn't multiply calls to Open-Meteo. Failed requests aren't kept.
+function cachedFetch(key, load) {
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.promise;
+  const promise = load();
+  const entry = { at: Date.now(), promise };
+  cache.set(key, entry);
+  promise.catch(() => {
+    if (cache.get(key) === entry) cache.delete(key);
+  });
+  return promise;
+}
 
-  const promise = axios
+// One request for any number of points; Open-Meteo answers with a list when there are several.
+function requestForecast(points) {
+  return axios
     .get('https://api.open-meteo.com/v1/forecast', {
       params: {
-        ...NAIROBI,
+        latitude: points.map(p => p.latitude).join(','),
+        longitude: points.map(p => p.longitude).join(','),
         hourly: 'precipitation,weathercode,windspeed_10m,relativehumidity_2m,temperature_2m,cloudcover',
         past_days: 2,
         forecast_days: 2,
@@ -21,26 +33,29 @@ function fetchForecast() {
       },
       timeout: 10000,
     })
-    .then(res => res.data);
-
-  const entry = { at: Date.now(), promise };
-  cache = entry;
-  promise.catch(() => {
-    if (cache === entry) cache = null;
-  });
-  return promise;
+    .then(res => (Array.isArray(res.data) ? res.data : [res.data]));
 }
 
-async function fetchNairobiHourly() {
-  const data = await fetchForecast();
-
-  // Open-Meteo times are Nairobi-local ("2026-11-27T14:00"); match on that, not the server's clock.
+// Open-Meteo times are Nairobi-local ("2026-11-27T14:00"); match on that, not the server's clock.
+function atCurrentHour(data) {
   const localNow = new Date(Date.now() + data.utc_offset_seconds * 1000);
   const currentTime = localNow.toISOString().slice(0, 13) + ':00';
   const index = data.hourly.time.indexOf(currentTime);
   if (index === -1) throw new Error(`Open-Meteo returned no hourly data for ${currentTime}`);
+  return { hourly: data.hourly, index, currentTime, grid: { latitude: data.latitude, longitude: data.longitude } };
+}
 
-  return { hourly: data.hourly, index, currentTime };
+async function fetchNairobiHourly() {
+  const [data] = await cachedFetch('central', () => requestForecast([NAIROBI]));
+  return atCurrentHour(data);
+}
+
+// Hourly weather for each point, in the same order. Points in the same model grid cell
+// (about 8 km) get the same series.
+async function fetchHourlyAt(points) {
+  const key = points.map(p => `${p.latitude},${p.longitude}`).join(';');
+  const results = await cachedFetch(key, () => requestForecast(points));
+  return results.map(atCurrentHour);
 }
 
 // Null when any hour in the window is missing, so a gap is never read as a dry spell.
@@ -50,4 +65,4 @@ function rainOverLast(hourly, index, hours) {
   return readings.reduce((sum, mm) => sum + mm, 0);
 }
 
-module.exports = { fetchNairobiHourly, rainOverLast };
+module.exports = { fetchNairobiHourly, fetchHourlyAt, rainOverLast };

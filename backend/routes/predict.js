@@ -1,33 +1,40 @@
 const express = require('express');
 const axios   = require('axios');
-const { fetchNairobiHourly } = require('../lib/open-meteo');
+const { fetchHourlyAt } = require('../lib/open-meteo');
 const { modelFeatures } = require('../lib/model-features');
+const { predictionZones } = require('../lib/zones');
 const router  = express.Router();
 
 const ML_URL = process.env.ML_URL || 'http://localhost:5001';
 
-const ZONES = [
-  { name: 'Mathare Valley',    latitude: -1.258, longitude: 36.859 },
-  { name: 'Kibera',            latitude: -1.313, longitude: 36.784 },
-  { name: 'Mukuru kwa Njenga', latitude: -1.318, longitude: 36.878 },
-  { name: 'Pangani',           latitude: -1.275, longitude: 36.843 },
-  { name: 'Eastlands',         latitude: -1.285, longitude: 36.876 },
-  { name: 'Upper Hill',        latitude: -1.299, longitude: 36.818 },
-  { name: 'Westlands',         latitude: -1.268, longitude: 36.807 },
-  { name: 'CBD',               latitude: -1.284, longitude: 36.822 },
-];
-
+// Each zone is predicted from the weather at its own location. Zones whose readings are
+// incomplete are left out (the app shows their risk as unknown) rather than guessed.
 router.get('/', async (req, res) => {
   try {
-    const { hourly, index, currentTime } = await fetchNairobiHourly();
-    const features = modelFeatures(hourly, index, currentTime);
-    if (Object.values(features).some(value => value == null)) {
-      return res.status(503).json({ error: 'Flood model unavailable: some live weather readings are missing.' });
-    }
-    const zones = ZONES.map(z => ({ ...z, ...features }));
+    const zones = predictionZones();
+    const weather = await fetchHourlyAt(zones);
 
-    const mlRes = await axios.post(`${ML_URL}/predict`, { zones }, { timeout: 15000 });
-    const predictions = mlRes.data.filter(p => p.flood_probability != null);
+    const complete = zones
+      .map((zone, i) => ({ zone, features: modelFeatures(weather[i].hourly, weather[i].index, weather[i].currentTime) }))
+      .filter(({ features }) => Object.values(features).every(value => value != null));
+    if (!complete.length) {
+      return res.status(503).json({ error: 'Flood model unavailable: live weather readings are missing.' });
+    }
+
+    const payload = complete.map(({ zone, features }) => ({
+      name: zone.name, latitude: zone.latitude, longitude: zone.longitude, ...features,
+    }));
+    const mlRes = await axios.post(`${ML_URL}/predict`, { zones: payload }, { timeout: 15000 });
+
+    // The ML service answers in the same order as the zones it was sent.
+    const predictions = mlRes.data
+      .map((result, i) => ({
+        ...result,
+        rain_mm_per_hr: complete[i].features.precipitation_mm,
+        rain_3h_mm: complete[i].features.rain_3h_mm,
+        rain_24h_mm: complete[i].features.rain_24h_mm,
+      }))
+      .filter(p => p.flood_probability != null);
     if (!predictions.length) {
       return res.status(502).json({ error: 'Flood model returned no predictions.' });
     }

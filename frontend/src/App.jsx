@@ -7,7 +7,7 @@ import MapView from './components/MapView';
 import AIChatPanel from './components/AIChatPanel';
 import RainIndicator from './components/RainIndicator';
 import RoutePanel from './components/RoutePanel';
-import { isZoneAtRiskNow, isZoneRiskKnown } from './risk';
+import { isZoneAtRiskNow, isZoneRiskKnown, zoneRainNow } from './risk';
 import { buildAlerts } from './alerts';
 import { useLiveData } from './useLiveData';
 import { formatReading } from './format';
@@ -112,8 +112,9 @@ export default function App() {
     setActiveTab('chat');
   }, []);
   const selectedPrediction = selectedZone && predictions.find(p => p.name === selectedZone.name);
-  const selectedOverThreshold = selectedZone && precipMm != null && selectedZone.rain_threshold != null
-    ? precipMm >= selectedZone.rain_threshold
+  const selectedRain = selectedZone ? zoneRainNow(selectedZone, predictions, precipMm) : null;
+  const selectedOverThreshold = selectedZone && selectedRain != null && selectedZone.rain_threshold != null
+    ? selectedRain >= selectedZone.rain_threshold
     : null;
   const alerts = buildAlerts({
     weather,
@@ -294,6 +295,10 @@ export default function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <i className="ti ti-droplet" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
                   <span>Flood threshold: <span style={{ color: '#e8e8e8' }}>{selectedZone.rain_threshold != null ? `${selectedZone.rain_threshold}mm/hr` : 'not recorded'}</span></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-cloud-rain" style={{ fontSize: 13, color: '#555' }} aria-hidden="true" />
+                  <span>Rain here now: <span style={{ color: '#e8e8e8' }}>{selectedRain != null ? `${selectedRain.toFixed(1)}mm/hr` : 'unknown'}</span></span>
                 </div>
                 {selectedZone.residents > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
