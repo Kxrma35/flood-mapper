@@ -90,6 +90,7 @@ flood-mapper/
 │   │   ├── useLiveData.js    Polls the backend's live data (weather, predictions, flood records)
 │   │   ├── floodRecords.js   Wording for recorded floods and the 2024 satellite figures
 │   │   ├── zoneStyle.js      Zone colours for the map, panel and route check
+│   │   ├── analytics.js      Anonymous visit counts (Cloudflare), when a token is set
 │   │   ├── routePlanner.js   Gets routes and a safer alternative around at-risk zones
 │   │   ├── geometry.js       Checks which zones a route passes through
 │   │   ├── risk.js           Decides whether a zone is at flood risk right now
@@ -338,6 +339,14 @@ VITE_CARTO_KEY=your-carto-basemaps-key
 
 CARTO's dark map tiles need a key, free for non-commercial use (request one at https://carto.com/basemaps/apikey; requesting it accepts CARTO's basemap terms). Without a key the map uses OpenStreetMap's standard tiles, dimmed to match the dark UI. Those are fine for development and light use under the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/), but not for heavy traffic. The key ends up in tile URLs in the browser, so it is public by nature; it is not a secret.
 
+Optional, for anonymous visitor counts in the deployed site (see [Quick deploy](#quick-deploy-render-servers-appwrite-website-cloudflare-visitor-counts)):
+
+```
+VITE_CF_ANALYTICS_TOKEN=your-cloudflare-web-analytics-token
+```
+
+The token is in every page's HTML, so it is public too. Without it, and always in local development, no visits are counted.
+
 **Important:** Vite only reads `.env` files when its dev server starts. If you create or edit this file while `npm run dev` is already running, stop the process (Ctrl+C) and start it again — a hot reload alone will not pick up the change.
 
 Neither `.env` file should be committed to version control. Both should be listed in `.gitignore`.
@@ -380,25 +389,37 @@ Open that URL in a browser. The map, weather indicator, and AI chat should all b
 
 This project has three independently deployable parts. Each can be deployed to a different provider, as long as each one is told the correct URL of the others through environment variables.
 
-### Quick deploy: Render (servers) and Vercel (website)
+### Quick deploy: Render (servers), Appwrite (website), Cloudflare (visitor counts)
 
-`render.yaml` defines the two servers for Render and `vercel.json` the website for Vercel, so most settings are already filled in. You need a Render account and a Vercel account (both can sign in with GitHub), your OpenRouteService key and an OpenAI key. The keys go only into the hosts' dashboards, never into the repo.
+`render.yaml` defines the two servers for Render. The website is a static build that any static host can serve; these steps use Appwrite Sites, which comes with the GitHub Student Developer Pack. You need a Render account, an Appwrite account, your OpenRouteService key and an OpenAI key, plus a Cloudflare account if you want visitor counts. Keys go only into the hosts' dashboards, never into the repo.
 
 1. **Render, the two servers.** In Render, choose **New → Blueprint** and pick this repository. Render reads `render.yaml` and lists `floodsafe-ml` and `floodsafe-backend`. It asks for four values:
    - `ML_URL`: `https://floodsafe-ml.onrender.com`. If Render gives the model service a different address, use that one.
    - `ORS_API_KEY` and `OPENAI_API_KEY`: your keys.
-   - `FRONTEND_URL`: leave it for now (step 3).
+   - `FRONTEND_URL`: leave it for now (step 4).
 
-   Apply it, and wait until both are live. `https://floodsafe-ml.onrender.com/health` and `https://floodsafe-backend.onrender.com/health` should both answer `{"status":"ok"}`.
-2. **Vercel, the website.** In Vercel, choose **Add New → Project** and import this repository, leaving the root directory as the repository root (`vercel.json` sets the build). Add the environment variable `VITE_API_URL` with the backend's address, for example `https://floodsafe-backend.onrender.com` (no trailing slash). Optionally add `VITE_CARTO_KEY` (see above). Then deploy, and note the site's address, for example `https://flood-mapper.vercel.app`.
-3. **Connect them.** In Render, open `floodsafe-backend` → **Environment**, set `FRONTEND_URL` to the site's address from step 2 (no trailing slash), and save. Render redeploys it. Until this is set, the backend refuses the website's requests (CORS).
+   Apply it, and wait until both are live. `https://floodsafe-ml.onrender.com/health` and `https://floodsafe-backend.onrender.com/health` should both answer `{"status":"ok"}`. If you already created the servers by hand, you can keep them: make sure each one deploys the `main` branch (**Manual Deploy → Deploy latest commit** after a merge), uses the root directory, build and start commands in `render.yaml`, and has the same environment variables.
+2. **Appwrite, the website.** In the Appwrite Console, create a project, open **Sites → Create site** and connect this GitHub repository, with production branch `main`. Set the build settings by hand (the repo keeps the website in `frontend/`, so the framework defaults don't fit):
+   - Rendering: **Static**
+   - Root directory: `./`
+   - Install command: `npm ci`
+   - Build command: `npm run build`
+   - Output directory: `./frontend/dist`
+
+   Under **Environment variables**, add `VITE_API_URL` with the backend's address, for example `https://floodsafe-backend.onrender.com`. Optionally add `VITE_CARTO_KEY` (see above) and `VITE_CF_ANALYTICS_TOKEN` (step 3). These are read when the site is built, so redeploy after changing one. Deploy, and note the site's address (for example `https://<id>.appwrite.network`, or a custom domain).
+3. **Cloudflare, visitor counts (optional).** In the Cloudflare dashboard, open **Web Analytics → Add a site**, enter the site's address from step 2, and choose the JavaScript snippet (the site isn't served through Cloudflare). Copy the `token` value from the snippet into Appwrite as `VITE_CF_ANALYTICS_TOKEN`, and redeploy. The app adds Cloudflare's script itself, only in the built site and only when the token is set. Cloudflare then shows visits and page views per day, with countries and devices. It doesn't use cookies or collect visitors' personal data, according to Cloudflare, so no cookie banner is needed. The app's map legend says visits are counted anonymously.
+4. **Connect them.** In Render, open `floodsafe-backend` → **Environment**, set `FRONTEND_URL` to the site's address from step 2, and save. Render redeploys it. Until this is set, the backend refuses the website's requests (CORS). To allow more than one site, for example while moving hosts, separate the addresses with commas.
+
+To check the website reached the backend, open it and wait a minute (the servers may be waking): the ticker should show rain readings, not "Live weather is unavailable". If it stays unavailable, check in the browser's developer tools that requests go to your backend's address. Requests going to the website's own `/api/...` mean `VITE_API_URL` wasn't set when the site was built.
 
 What to expect on the free plans:
 
 - **Sleeping servers.** Render's free servers sleep after 15 minutes without traffic and take about a minute to wake. The first visit after a quiet spell shows "unavailable" briefly: the app retries every 30 seconds, and the backend wakes the model service as soon as it wakes itself.
 - **Monthly hours.** Render gives 750 free hours a month per workspace, shared by both servers. That's enough because they sleep when nobody is using the site; two servers busy around the clock would use about 1,490.
-- **Preview deployments.** Vercel preview builds have their own addresses, which the backend doesn't allow; only `FRONTEND_URL` is allowed.
+- **Appwrite student plan.** Appwrite's Education plan (through the GitHub Student Developer Pack) covers 2 projects with Pro-level limits; Appwrite's pages disagree on whether it lasts six months or until you graduate, so check the date on your account.
 - **Costs and quotas.** Every chat question costs OpenAI usage, and OpenRouteService has daily quotas. Both are rate-limited per visitor (see Known Limitations).
+
+The website also builds on Vercel (`vercel.json`) or any other static host: install with `npm ci`, build with `npm run build`, and serve `frontend/dist`.
 
 The sections below explain each part in more detail, for other hosts.
 
@@ -437,7 +458,7 @@ Most hosting providers will run this command for you if you set it as the start 
 OPENAI_API_KEY=sk-...
 ORS_API_KEY=your-openrouteservice-key
 ML_URL=https://your-ml-service.onrender.com
-FRONTEND_URL=https://your-frontend.vercel.app
+FRONTEND_URL=https://your-site.appwrite.network
 PORT=3001
 TRUST_PROXY=1
 ```
@@ -457,9 +478,10 @@ TRUST_PROXY=1
 ```
 VITE_API_URL=https://your-backend.onrender.com
 VITE_CARTO_KEY=your-carto-basemaps-key
+VITE_CF_ANALYTICS_TOKEN=your-cloudflare-web-analytics-token
 ```
 
-`VITE_API_URL` must point to the deployed backend URL, not `localhost`. `VITE_CARTO_KEY` is optional but recommended for a public deployment (see above).
+`VITE_API_URL` must point to the deployed backend URL, not `localhost`. `VITE_CARTO_KEY` is optional but recommended for a public deployment (see above). `VITE_CF_ANALYTICS_TOKEN` is optional and turns on visitor counts.
 
 ### Deployment Order
 

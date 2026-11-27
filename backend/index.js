@@ -16,7 +16,10 @@ const recordsRoute = require('./routes/records');
 // (usually 1) so the rate limits count each visitor's own IP.
 if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY));
 
-const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_URL].filter(Boolean);
+// FRONTEND_URL can list several sites, comma-separated (for example while moving hosts).
+const allowedOrigins = ['http://localhost:5173', ...(process.env.FRONTEND_URL || '').split(',')]
+  .map(origin => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
