@@ -1,11 +1,6 @@
 // RainIndicator.jsx
 // Shows live rainfall from Open-Meteo and a 6-hour forecast bar chart.
-// Used in the sidebar. Fetches /api/weather on mount and every 5 minutes.
-
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const API = import.meta.env.VITE_API_URL || '';
+// Used in the sidebar. App fetches the weather and passes it in.
 
 function getRiskLabel(mm) {
   if (mm >= 20) return { label: 'HIGH', color: '#E24B4A' };
@@ -14,30 +9,11 @@ function getRiskLabel(mm) {
   return { label: 'NONE', color: '#555' };
 }
 
-export default function RainIndicator({ onWeatherUpdate }) {
-  const [weather, setWeather] = useState(null);
-  const [error, setError] = useState(null);
-
-  async function fetchWeather() {
-    try {
-      const { data } = await axios.get(`${API}/api/weather`);
-      setWeather(data);
-      onWeatherUpdate?.(data);
-    } catch {
-      setError('Weather unavailable');
-    }
-  }
-
-  useEffect(() => {
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 5 * 60 * 1000); // every 5 min
-    return () => clearInterval(interval);
-  }, []);
-
+export default function RainIndicator({ weather, error }) {
   if (error) {
     return (
       <div style={styles.container}>
-        <div style={{ color: '#555', fontSize: 12 }}>{error}</div>
+        <div style={{ color: '#555', fontSize: 12 }}>Weather unavailable</div>
       </div>
     );
   }
